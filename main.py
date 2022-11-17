@@ -2,7 +2,7 @@ import argparse
 import time
 
 from cdcl import cdcl
-from utils import read_cnf
+from utils import read_cnf, verify
 
 
 def parse_args():
@@ -12,10 +12,10 @@ def parse_args():
         # "-i", "--input", type=str, default="examples/and2.cnf"
         # "-i", "--input", type=str, default="examples/bmc-1.cnf"
         # "-i", "--input", type=str, default="examples/bmc-2.cnf"
-        # "-i", "--input", type=str, default="examples/bmc-7.cnf"
+        "-i", "--input", type=str, default="examples/bmc-7.cnf"
         # "-i", "--input", type=str, default="my-examples/good-15-vars.cnf"
         # "-i", "--input", type=str, default="my-examples/bad-6-vars.cnf"
-        "-i", "--input", type=str, default="my-examples/test.cnf"
+        # "-i", "--input", type=str, default="my-examples/test.cnf"
     )
 
     return parser.parse_args()
@@ -36,7 +36,8 @@ def main(args):
     else:
         print(f"✔ Successfully found a solution: {res}")
     end = time.time()
-    print(end - start, "seconds")
+    print(end - start, "seconds elapsed")
+    print("The solution is verified to be", verify(sentence, res))
 
 
 if __name__ == "__main__":
