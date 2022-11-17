@@ -37,7 +37,8 @@ def main(args):
         print(f"✔ Successfully found a solution: {res}")
     end = time.time()
     print(end - start, "seconds elapsed")
-    print("The solution is verified to be", verify(sentence, res))
+    if res is not None:
+        print("The solution is verified to be", verify(sentence, res))
 
 
 if __name__ == "__main__":
