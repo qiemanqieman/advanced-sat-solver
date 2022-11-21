@@ -154,15 +154,11 @@ def analyze_conflict(sentence, assignment, decided_idxs, conflict_ante):
 
     def conflict_clause_level_is_0(clause):
         """compute the level of a conflict clause --- the highest level of all literals' negations in clause"""
-        for literal in clause:
-            if level_of(-literal) == 0:
-                continue
-            else:
-                return False
-        return True
+        return all([level_of(-literal) == 0 for literal in clause])
 
     if conflict_clause_level_is_0(conflict_ante):
         return -1, learned_clause
+
     # get the highest level's assignments
     assignments = [list(assignment[0][decided_idxs[-1]:]), list(assignment[1][decided_idxs[-1]:])]
     assignments[0].reverse()  # and put the latest assigned to the start
