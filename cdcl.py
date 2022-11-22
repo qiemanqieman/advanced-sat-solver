@@ -23,45 +23,52 @@ def bcp(sentence, assignment, c2l_watch, l2c_watch, is_backtrack=False):
                 is_unit_or_conflict = False
                 break
         return idx, is_unit_or_conflict
-    # def check_satisfied(i0, i1, literal_idx):
-    #     satisfied = False
-    #     if any([i0 in assignment[0], i1 in assignment[0]]) or all([-i0 not in assignment[0], -i1 not in assignment[0]]):
-    #         literal_idx += 1
-    #         satisfied = True
-    #     return satisfied, literal_idx
 
-    i = len(assignment[0]) - 1
-    if is_backtrack:  # if rerun bcp after backtracking, assign value for the newly learned unit clause
-        assignment[0].append(c2l_watch[len(sentence) - 1][0])
-        assignment[1].append(len(sentence) - 1)
-        i += 1
-    if not assignment[0]:  # first time to run bcp
-        i = 0
+    def check_satisfied(i0, i1, literal_idx):
+        """check if clause already sat or has two validate literals watching"""
+        satisfied = False
+        if any([i0 in assignment[0], i1 in assignment[0]]) or all([-i0 not in assignment[0], -i1 not in assignment[0]]):
+            literal_idx += 1
+            satisfied = True
+        return satisfied, literal_idx
+
+    def check_if_backtrack():
+        """check if the bcp is rerun after a conflict backtracking"""
+        if is_backtrack:  # if rerun bcp after backtracking, assign value for the newly learned unit clause
+            assignment[0].append(c2l_watch[len(sentence) - 1][0])
+            assignment[1].append(len(sentence) - 1)
+            return 1
+        return 0
+
+    def handle_first_time_to_run():
+        """handle run bcp for the first time, handle all clauses with only 1 literal"""
+        conflict_clause = None
         for clause_idx, literals in c2l_watch.items():
             if len(literals) == 1:  # unit clause
                 if -literals[0] in assignment:
-                    return list(sentence[clause_idx])
+                    conflict_clause = list(sentence[clause_idx])
+                    break
                 if literals[0] not in assignment:
                     assignment[0].append(literals[0])
                     assignment[1].append(clause_idx)
+        return conflict_clause
+
+    i = len(assignment[0]) - 1
+    i += check_if_backtrack()
+    if not assignment[0]:  # first time to run bcp
+        i = 0
+        conflict_clause = handle_first_time_to_run()
+        if conflict_clause: return conflict_clause
     while i < len(assignment[0]):  # iterate all new assignments
         literal_idx, watch_clauses = 0, l2c_watch.get(-assignment[0][i], [])
         while literal_idx < len(watch_clauses):  # iterate all clause
             clause_idx = watch_clauses[literal_idx]
-            i0, i1 = c2l_watch[clause_idx][0], c2l_watch[clause_idx][1]
-
-            # if clause already sat or has two validate literals watching
-            if any([i0 in assignment[0], i1 in assignment[0]]) or all([-i0 not in assignment[0], -i1 not in assignment[0]]):
-                literal_idx += 1
-                continue
-            # satisfied, literal_idx = check_satisfied(i0, i1, literal_idx)
-            # if satisfied: continue
-
+            i0, i1 = c2l_watch[clause_idx]
+            satisfied, literal_idx = check_satisfied(i0, i1, literal_idx)
+            if satisfied: continue
             literal_idx, is_unit_or_conflict = propagate_watch(literal_idx, clause_idx)
             if is_unit_or_conflict:
                 literal_idx += 1
-                i0 = c2l_watch[clause_idx][0]
-                i1 = c2l_watch[clause_idx][1]
                 another = i0 if i0 != -assignment[0][i] else i1
                 if -another in assignment[0]:  # conflicted clause
                     return list(sentence[clause_idx])
