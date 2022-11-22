@@ -5,6 +5,31 @@ def bcp(sentence, assignment, c2l_watch, l2c_watch, is_backtrack=False):
     """Propagate unit clauses with watched literals."""
 
     """ YOUR CODE HERE """
+    def propagate_watch(idx, clause_idx):
+        is_unit_or_conflict = True
+        for literal in sentence[clause_idx]:  # o.s. checking for all literal in clause
+            # if having satisfied literal, check next clause
+            if literal in assignment[0]:
+                is_unit_or_conflict = False
+                idx += 1
+                break
+            # if having any literal whose negation unassigned, adjust watching literals for this clause, o.w.
+            # this clause is unit or conflict
+            if literal not in c2l_watch[clause_idx] and -literal not in assignment[0]:
+                c2l_watch[clause_idx].remove(-assignment[0][i])
+                l2c_watch[-assignment[0][i]].remove(clause_idx)
+                c2l_watch[clause_idx].append(literal)
+                l2c_watch[literal] = l2c_watch.get(literal, []) + [clause_idx]
+                is_unit_or_conflict = False
+                break
+        return idx, is_unit_or_conflict
+    # def check_satisfied(i0, i1, literal_idx):
+    #     satisfied = False
+    #     if any([i0 in assignment[0], i1 in assignment[0]]) or all([-i0 not in assignment[0], -i1 not in assignment[0]]):
+    #         literal_idx += 1
+    #         satisfied = True
+    #     return satisfied, literal_idx
+
     i = len(assignment[0]) - 1
     if is_backtrack:  # if rerun bcp after backtracking, assign value for the newly learned unit clause
         assignment[0].append(c2l_watch[len(sentence) - 1][0])
@@ -20,34 +45,21 @@ def bcp(sentence, assignment, c2l_watch, l2c_watch, is_backtrack=False):
                     assignment[0].append(literals[0])
                     assignment[1].append(clause_idx)
     while i < len(assignment[0]):  # iterate all new assignments
-        idx, clauses = 0, l2c_watch.get(-assignment[0][i], [])
-        while idx < len(clauses):  # iterate all clause
-            clause_idx = clauses[idx]
+        literal_idx, watch_clauses = 0, l2c_watch.get(-assignment[0][i], [])
+        while literal_idx < len(watch_clauses):  # iterate all clause
+            clause_idx = watch_clauses[literal_idx]
             i0, i1 = c2l_watch[clause_idx][0], c2l_watch[clause_idx][1]
 
             # if clause already sat or has two validate literals watching
             if any([i0 in assignment[0], i1 in assignment[0]]) or all([-i0 not in assignment[0], -i1 not in assignment[0]]):
-                idx += 1
+                literal_idx += 1
                 continue
+            # satisfied, literal_idx = check_satisfied(i0, i1, literal_idx)
+            # if satisfied: continue
 
-            is_unit_or_conflict = True
-            for literal in sentence[clause_idx]:  # o.s. checking for all literal in clause
-                # if having satisfied literal, check next clause
-                if literal in assignment[0]:
-                    is_unit_or_conflict = False
-                    idx += 1
-                    break
-                # if having any literal whose negation unassigned, adjust watching literals for this clause, o.s.
-                # this clause is unit or conflict
-                if literal not in c2l_watch[clause_idx] and -literal not in assignment[0]:
-                    c2l_watch[clause_idx].remove(-assignment[0][i])
-                    l2c_watch[-assignment[0][i]].remove(clause_idx)
-                    c2l_watch[clause_idx].append(literal)
-                    l2c_watch[literal] = l2c_watch.get(literal, []) + [clause_idx]
-                    is_unit_or_conflict = False
-                    break
+            literal_idx, is_unit_or_conflict = propagate_watch(literal_idx, clause_idx)
             if is_unit_or_conflict:
-                idx += 1
+                literal_idx += 1
                 i0 = c2l_watch[clause_idx][0]
                 i1 = c2l_watch[clause_idx][1]
                 another = i0 if i0 != -assignment[0][i] else i1
@@ -71,7 +83,7 @@ def init_vsids_scores(sentence, num_vars):
     return dict(sorted(scores.items(), key=lambda i: i[1], reverse=True))
 
 
-def decide_vsids(vsids_scores, assignment):  # NOTE add a parameter --- assignment
+def decide_vsids(vsids_scores, assignment):
     """Decide which variable to assign and whether to assign True or False.
     reset value to 0 for those have been assigned and reposition to the end so that new learned clause's literal will have
     more chance to be chosen"""
@@ -221,7 +233,7 @@ def cdcl(sentence, num_vars):
     while len(assignment[0]) < num_vars:
         assigned_lit = decide_vsids(vsids_scores, assignment)
         # NOTE
-        if assigned_lit is None:
+        if assigned_lit is None:  # all variables are assigned(find an assignment), finish the loop
             return assignment[0]
         decided_idxs.append(len(assignment[0]))
         assignment[0].append(assigned_lit)
@@ -232,7 +244,7 @@ def cdcl(sentence, num_vars):
         while conflict_ante is not None:
             # Learn conflict.
             backtrack_level, learned_clause = analyze_conflict(sentence, assignment, decided_idxs, conflict_ante)
-            if backtrack_level < 0:
+            if backtrack_level < 0:  # conflict clause level is 0, UNSAT, finish the loop
                 return None
             add_learned_clause(sentence, learned_clause, c2l_watch, l2c_watch)
             # Update VSIDS scores.
