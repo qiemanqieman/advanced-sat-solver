@@ -1,5 +1,5 @@
 import bisect
-
+from heuristics import *
 
 def bcp(sentence, assignment, c2l_watch, l2c_watch, is_backtrack=False):
     """Propagate unit clauses with watched literals."""
@@ -82,8 +82,12 @@ def init_vsids_scores(sentence, num_vars):
     """Initialize variable scores for VSIDS.
     we need to design it to be in order(in my case, decreasing order), so that accelerate deciding"""
     scores = {}
-
     """ YOUR CODE HERE """
+    # from queue import PriorityQueue as PQ
+    # scores = PQ()
+    # for clause in sentence:
+    #     for literal in clause:
+    #         scores.put((-len(clause), literal))
     for clause in sentence:
         for literal in clause:
             scores[literal] = scores.get(literal, 0) + 1
@@ -97,8 +101,7 @@ def decide_vsids(vsids_scores, assignment):
     assigned_lit = None
 
     """ YOUR CODE HERE """
-    scores = {}
-    scores.update(vsids_scores)
+    scores = dict(vsids_scores)
     reset = []
     for lit in scores:
         if lit in assignment[0] or -lit in assignment[0]:
@@ -126,7 +129,7 @@ def update_vsids_scores(vsids_scores, learned_clause, decay=0.95):
     for i in increased:
         bisect.insort(scores, i)  # use bisect method for accelerating the operation of maintaining order
     scores.reverse()
-    scores = [[i[1], i[0]] for i in scores]
+    scores = [(i[1], i[0]) for i in scores]
     scores = dict(scores)
     vsids_scores.clear()
     vsids_scores.update(scores)
@@ -220,7 +223,7 @@ def add_learned_clause(sentence, learned_clause, c2l_watch, l2c_watch):
         l2c_watch.update({sentence[i][1]: l2c_watch.get(sentence[i][1], []) + [i]})
 
 
-def cdcl(sentence, num_vars):
+def cdcl(sentence, num_vars, assignment_algorithm):
     """Run a CDCL solver for the SAT problem.
 
     To simplify the use of data structures, `sentence` is a list of lists where each list
@@ -232,13 +235,14 @@ def cdcl(sentence, num_vars):
     c2l_watch, l2c_watch = init_watch(sentence, num_vars)
     assignment, decided_idxs = [[], []], []
 
+    decide_literal = decide_vsids
     # Run BCP.
     if bcp(sentence, assignment, c2l_watch, l2c_watch) is not None:
         return None  # indicate UNSAT
 
     # Main loop.
     while len(assignment[0]) < num_vars:
-        assigned_lit = decide_vsids(vsids_scores, assignment)
+        assigned_lit = decide_literal(vsids_scores, assignment)
         # NOTE
         if assigned_lit is None:  # all variables are assigned(find an assignment), finish the loop
             return assignment[0]
