@@ -24,6 +24,7 @@ class Heuristic(ABC):
 
     @abstractmethod
     def decide(self, assigned):
+        """decide which literal to be assigned next"""
         pass
 
     @abstractmethod

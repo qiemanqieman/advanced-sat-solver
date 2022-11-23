@@ -3,6 +3,11 @@ from .heuristics import Heuristic
 
 
 class VSIDS(Heuristic):
+    """
+    The variable state independent decaying sum(VSIDS) alogrithm.
+    :field decay: the multiplicative decay factor
+    :field vsids_scores: the state scores of each literal
+    """
     def __init__(self, sentence, decay=0.95):
         self.decay = decay
         self.vsids_scores = self.init_vsids_scores(sentence)
@@ -57,6 +62,8 @@ class VSIDS(Heuristic):
         return None
 
     def rearrange(self, unassigned_literals):
-        """Rearrange the order of unassigned literals.
-        This method is called after the solver has finished searching for a solution."""
+        """
+        Rearrange the order of unassigned literals.
+        This method is called after the solver has finished searching for a solution.
+        """
         pass

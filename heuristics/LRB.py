@@ -3,6 +3,7 @@ from .heuristics import Heuristic
 
 
 class LRB(Heuristic):
+    """The learning rate branching(LRB) algorithm."""
     def __init__(self, sentence, alpha=0.4):
         self.alpha = alpha
         self.learn_counter = 0
@@ -36,12 +37,14 @@ class LRB(Heuristic):
             self.ema[literal] = self.alpha * reward + (1 - self.alpha) * self.ema[literal]
 
     def decide(self, assigned):
+        """decide which literal to be assigned next"""
         for literal in self.ema:
             if literal not in assigned and -literal not in assigned:
                 return literal
         return None
 
     def rearrange(self, unassigned_literals):
+        """Rearrange literals order in self.ema, maintain them in descending order."""
         need_adjust_order = []
         for lit in unassigned_literals:
             need_adjust_order.append([self.ema.pop(lit), lit])
