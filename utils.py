@@ -31,3 +31,4 @@ def verify(sentence, solution):
         return any([literal in solution for literal in cl])
 
     return all([clause_is_true(clause) for clause in sentence])
+
