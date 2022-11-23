@@ -1,21 +1,25 @@
 import bisect
 from heuristics import *
 
-def bcp(sentence, assignment, c2l_watch, l2c_watch, is_backtrack=False):
+
+def bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic, is_backtrack=False):
     """Propagate unit clauses with watched literals."""
 
     """ YOUR CODE HERE """
+
     def propagate_watch(idx, clause_idx):
         is_unit_or_conflict = True
         for literal in sentence[clause_idx]:  # o.s. checking for all literal in clause
             # if having satisfied literal, check next clause
-            if literal in assignment[0]:
+            # if literal in assignment[0]:
+            if heuristic.assigned[literal]:
                 is_unit_or_conflict = False
                 idx += 1
                 break
             # if having any literal whose negation unassigned, adjust watching literals for this clause, o.w.
             # this clause is unit or conflict
-            if literal not in c2l_watch[clause_idx] and -literal not in assignment[0]:
+            # if literal not in c2l_watch[clause_idx] and -literal not in assignment[0]:
+            if literal not in c2l_watch[clause_idx] and not heuristic.assigned[-literal]:
                 c2l_watch[clause_idx].remove(-assignment[0][i])
                 l2c_watch[-assignment[0][i]].remove(clause_idx)
                 c2l_watch[clause_idx].append(literal)
@@ -27,7 +31,9 @@ def bcp(sentence, assignment, c2l_watch, l2c_watch, is_backtrack=False):
     def check_satisfied(i0, i1, literal_idx):
         """check if clause already sat or has two validate literals watching"""
         satisfied = False
-        if any([i0 in assignment[0], i1 in assignment[0]]) or all([-i0 not in assignment[0], -i1 not in assignment[0]]):
+        if any([heuristic.assigned[i0], heuristic.assigned[i1]]) or all(
+                [not heuristic.assigned[-i0], not heuristic.assigned[-i1]]):
+            # if any([i0 in assignment[0], i1 in assignment[0]]) or all([-i0 not in assignment[0], -i1 not in assignment[0]]):
             literal_idx += 1
             satisfied = True
         return satisfied, literal_idx
@@ -37,21 +43,21 @@ def bcp(sentence, assignment, c2l_watch, l2c_watch, is_backtrack=False):
         if is_backtrack:  # if rerun bcp after backtracking, assign value for the newly learned unit clause
             assignment[0].append(c2l_watch[len(sentence) - 1][0])
             assignment[1].append(len(sentence) - 1)
+            heuristic.on_assign(c2l_watch[len(sentence) - 1][0])
             return 1
         return 0
 
     def handle_first_time_to_run():
         """handle run bcp for the first time, handle all clauses with only 1 literal"""
-        conflict_clause = None
         for clause_idx, literals in c2l_watch.items():
             if len(literals) == 1:  # unit clause
                 if -literals[0] in assignment:
-                    conflict_clause = list(sentence[clause_idx])
-                    break
+                    return list(sentence[clause_idx])
                 if literals[0] not in assignment:
                     assignment[0].append(literals[0])
                     assignment[1].append(clause_idx)
-        return conflict_clause
+                    heuristic.on_assign(literals[0])
+        return None
 
     i = len(assignment[0]) - 1
     i += check_if_backtrack()
@@ -72,67 +78,12 @@ def bcp(sentence, assignment, c2l_watch, l2c_watch, is_backtrack=False):
                 another = i0 if i0 != -assignment[0][i] else i1
                 if -another in assignment[0]:  # conflicted clause
                     return list(sentence[clause_idx])
-                assignment[0].append(another)   # unit clause
+                assignment[0].append(another)  # unit clause
                 assignment[1].append(clause_idx)
+                # heuristic.assigned[another] = True
+                heuristic.on_assign(another)
         i += 1
     return None  # indicate no conflict; other return the antecedent of the conflict
-
-
-def init_vsids_scores(sentence, num_vars):
-    """Initialize variable scores for VSIDS.
-    we need to design it to be in order(in my case, decreasing order), so that accelerate deciding"""
-    scores = {}
-    """ YOUR CODE HERE """
-    # from queue import PriorityQueue as PQ
-    # scores = PQ()
-    # for clause in sentence:
-    #     for literal in clause:
-    #         scores.put((-len(clause), literal))
-    for clause in sentence:
-        for literal in clause:
-            scores[literal] = scores.get(literal, 0) + 1
-    return dict(sorted(scores.items(), key=lambda i: i[1], reverse=True))
-
-
-def decide_vsids(vsids_scores, assignment):
-    """Decide which variable to assign and whether to assign True or False.
-    reset value to 0 for those have been assigned and reposition to the end so that new learned clause's literal will have
-    more chance to be chosen"""
-    assigned_lit = None
-
-    """ YOUR CODE HERE """
-    scores = dict(vsids_scores)
-    reset = []
-    for lit in scores:
-        if lit in assignment[0] or -lit in assignment[0]:
-            vsids_scores.pop(lit)
-            reset.append((lit, 0))
-            continue
-        assigned_lit = lit
-        break
-    vs = dict(list(vsids_scores.items()) + reset)
-    vsids_scores.clear()
-    vsids_scores.update(vs)
-    return assigned_lit
-
-
-def update_vsids_scores(vsids_scores, learned_clause, decay=0.95):
-    """Update VSIDS scores.
-    note that the sorting order should be maintained"""
-    increased = []
-    for lit in learned_clause:
-        increased.append([(vsids_scores.pop(lit) + 1) * decay, lit])
-    for lit in vsids_scores:
-        vsids_scores[lit] = vsids_scores[lit] * decay
-    scores = [[i[1], i[0]] for i in vsids_scores.items()]
-    scores.reverse()
-    for i in increased:
-        bisect.insort(scores, i)  # use bisect method for accelerating the operation of maintaining order
-    scores.reverse()
-    scores = [(i[1], i[0]) for i in scores]
-    scores = dict(scores)
-    vsids_scores.clear()
-    vsids_scores.update(scores)
 
 
 def init_watch(sentence, num_vars):
@@ -156,7 +107,7 @@ def analyze_conflict(sentence, assignment, decided_idxs, conflict_ante):
     level in conflict clause
     learned clause returned should be in decreasing order of the assignment, which means the latest assigned literal
     is in the start. This will facilitate the later call of add_learned_clause(...)"""
-    backtrack_level, learned_clause = None, []
+    backtrack_level, learned_clause, conflict_side_literals = None, [], []
 
     """ YOUR CODE HERE """
 
@@ -179,7 +130,7 @@ def analyze_conflict(sentence, assignment, decided_idxs, conflict_ante):
         return all([level_of(-literal) == 0 for literal in clause])
 
     if conflict_clause_level_is_0(conflict_ante):
-        return -1, learned_clause
+        return -1, learned_clause, conflict_side_literals
 
     # get the highest level's assignments
     assignments = [list(assignment[0][decided_idxs[-1]:]), list(assignment[1][decided_idxs[-1]:])]
@@ -187,23 +138,30 @@ def analyze_conflict(sentence, assignment, decided_idxs, conflict_ante):
     assignments[1].reverse()
     highest_level_literals = [-literal for literal in assignments[0] if -literal in conflict_ante]
     while len(highest_level_literals) > 1:
+        conflict_side_literals.append(highest_level_literals[0])
         conflict_ante = resolve(conflict_ante, sentence[assignment[1][assignment[0].index(-highest_level_literals[0])]])
         highest_level_literals = [-literal for literal in assignments[0] if -literal in conflict_ante]
     if len(highest_level_literals) == 1:
         learned_clause = sorted(conflict_ante, key=lambda key: level_of(-key), reverse=True)
         backtrack_level = 0 if len(learned_clause) == 1 else level_of(-learned_clause[1])
-    return backtrack_level, learned_clause
+    return backtrack_level, learned_clause, conflict_side_literals
 
 
-def backtrack(assignment, decided_idxs, level):
+def backtrack(assignment, decided_idxs, level, heuristic):
     """Backtrack by deleting assigned variables.
     keep all assigned literals with level <= backtrack_level"""
 
     """ YOUR CODE HERE """
-    new_ass = [assignment[0][:decided_idxs[level]], assignment[1][:decided_idxs[level]]]
+    unassigned_literals = []
+    for i in range(decided_idxs[level], len(assignment[0])):
+        assignment[1].pop()
+        unassigned_literals.append(assignment[0].pop())
+        heuristic.on_unassign(unassigned_literals[-1])
+    heuristic.rearrange(unassigned_literals)
+    # new_ass = [assignment[0][:decided_idxs[level]], assignment[1][:decided_idxs[level]]]
     new_dec = decided_idxs[:level]
-    assignment.clear()
-    assignment += new_ass
+    # assignment.clear()
+    # assignment += new_ass
     decided_idxs.clear()
     decided_idxs += new_dec
 
@@ -231,42 +189,49 @@ def cdcl(sentence, num_vars, assignment_algorithm):
     `assignment` is also a list of literals in the order of their assignment.
     """
     # Initialize some data structures.
-    vsids_scores = init_vsids_scores(sentence, num_vars)
+    # vsids_scores = init_vsids_scores(sentence, num_vars)
     c2l_watch, l2c_watch = init_watch(sentence, num_vars)
+    # assignment[0] is the list of literals, assignment[1] is the list of antecedents of corresponding literals
     assignment, decided_idxs = [[], []], []
-
-    decide_literal = decide_vsids
+    if assignment_algorithm == 'LRB':
+        heuristic = LRB(sentence, 0.4)
+    # else:
+    #     heuristic = decide_vsids
     # Run BCP.
-    if bcp(sentence, assignment, c2l_watch, l2c_watch) is not None:
+    if bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic) is not None:
         return None  # indicate UNSAT
 
     # Main loop.
     while len(assignment[0]) < num_vars:
-        assigned_lit = decide_literal(vsids_scores, assignment)
+        # assigned_lit = heuristic(vsids_scores, assignment)
+        assigned_lit = heuristic.decide()
         # NOTE
         if assigned_lit is None:  # all variables are assigned(find an assignment), finish the loop
             return assignment[0]
         decided_idxs.append(len(assignment[0]))
         assignment[0].append(assigned_lit)
         assignment[1].append(None)
-
+        # heuristic.assigned[assigned_lit] = True
+        heuristic.on_assign(assigned_lit)
         # Run BCP.
-        conflict_ante = bcp(sentence, assignment, c2l_watch, l2c_watch)
+        conflict_ante = bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic)
         while conflict_ante is not None:
             # Learn conflict.
-            backtrack_level, learned_clause = analyze_conflict(sentence, assignment, decided_idxs, conflict_ante)
+            backtrack_level, learned_clause, conflict_side_literals = analyze_conflict(sentence, assignment,
+                                                                                       decided_idxs, conflict_ante)
             if backtrack_level < 0:  # conflict clause level is 0, UNSAT, finish the loop
                 return None
             add_learned_clause(sentence, learned_clause, c2l_watch, l2c_watch)
             # Update VSIDS scores.
 
-            update_vsids_scores(vsids_scores, learned_clause)
+            # update_vsids_scores(vsids_scores, learned_clause)
+            heuristic.after_confilct_analysis(learned_clause, conflict_side_literals)
 
             # Backtrack.
 
-            backtrack(assignment, decided_idxs, backtrack_level)
+            backtrack(assignment, decided_idxs, backtrack_level, heuristic)
 
             # Propagate watch.
-            conflict_ante = bcp(sentence, assignment, c2l_watch, l2c_watch, True)
+            conflict_ante = bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic, True)
 
     return assignment[0]  # indicate SAT
