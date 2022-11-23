@@ -29,11 +29,9 @@ def main(args):
     with open(args.input, "r") as f:
         sentence, num_vars = read_cnf(f)
 
-    # NOTE compute time
-    start = time.time()
     # Create CDCL solver and solve it!
+    start = time.time() # compute time
     res = CDCL(sentence, num_vars, args.assignment_alogrithm).solve()
-
     if res is None:
         print("✘ No solution found")
     else:
