@@ -14,11 +14,10 @@ class LRB(Heuristic):
                 self.assigned_at[literal] = 0
                 self.participated_in[literal] = 0
 
-    def after_confilct_analysis(self, learnt_clause_literals, conflict_side_literals):
+    def after_conflict_analysis(self, learnt_clause_literals, conflict_side_literals):
         """Called after a learnt clause is generated from conflict analysis."""
         self.learn_counter += 1
         self.alpha = max(0.06, self.alpha - 1e-6)
-        # need_update = []
         for literal in learnt_clause_literals:
             self.participated_in[literal] += 1
         for literal in conflict_side_literals:
