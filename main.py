@@ -1,12 +1,13 @@
 import argparse
 import time
 
-from cdcl import cdcl
+from cdcl import CDCL
 from utils import read_cnf, verify
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    # parser.add_argument("-a", "--assignment_alogrithm", type=str, default="VSIDS")
     parser.add_argument("-a", "--assignment_alogrithm", type=str, default="LRB")
     parser.add_argument(
         # "-i", "--input", type=str, default="examples/and1.cnf"
@@ -31,7 +32,7 @@ def main(args):
     # NOTE compute time
     start = time.time()
     # Create CDCL solver and solve it!
-    res = cdcl(sentence, num_vars, args.assignment_alogrithm)
+    res = CDCL(sentence, num_vars, args.assignment_alogrithm).solve()
 
     if res is None:
         print("✘ No solution found")

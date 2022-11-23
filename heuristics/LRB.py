@@ -1,9 +1,8 @@
-# from queue import PriorityQueue as PQ
-# from binarysearchtree import BST
 import bisect
+from .heuristics import Heuristic
 
 
-class LRB:
+class LRB(Heuristic):
     def __init__(self, sentence, alpha=0.4):
         self.alpha = alpha
         self.learn_counter = 0
@@ -13,7 +12,6 @@ class LRB:
                 self.ema[literal] = 0.0
                 self.assigned_at[literal] = 0
                 self.participated_in[literal] = 0
-                # self.assigned[literal] = False
 
     def after_confilct_analysis(self, learnt_clause_literals, conflict_side_literals):
         """Called after a learnt clause is generated from conflict analysis."""
@@ -22,27 +20,13 @@ class LRB:
         # need_update = []
         for literal in learnt_clause_literals:
             self.participated_in[literal] += 1
-            # self.ema.pop(literal)
-            # need_update.append([self.participated_in.pop(literal) + 1, literal])
         for literal in conflict_side_literals:
             self.participated_in[literal] += 1
-            # self.ema.pop(literal)
-            # need_update.append([self.participated_in.pop(literal) + 1, literal])
-        # scores = [[i[1], i[0]] for i in self.ema.items()]
-        # scores.reverse()
-        # for i in need_update:
-        #     bisect.insort(scores, i)  # use bisect method for accelerating the operation of maintaining order
-        # scores.reverse()
-        # scores = [(i[1], i[0]) for i in scores]
-        # # scores_1 = dict(scores)
-        # self.ema.clear()
-        # self.ema.update(scores)
 
     def on_assign(self, literal):
-        """Called when a literaliable is assigned or propagated."""
+        """Called when a literal is assigned or propagated."""
         self.assigned_at[literal] = self.learn_counter
         self.participated_in[literal] = 0
-        # self.assigned[literal] = True
 
     def on_unassign(self, literal):
         """Called when a literal is unassigned by backtracking or restart."""
@@ -50,11 +34,9 @@ class LRB:
         if interval > 0:
             reward = float(self.participated_in[literal]) / interval
             self.ema[literal] = self.alpha * reward + (1 - self.alpha) * self.ema[literal]
-        # self.assigned[literal] = False
 
     def decide(self, assigned):
         for literal in self.ema:
-            # if not self.assigned[literal] and not self.assigned[-literal]:
             if literal not in assigned and -literal not in assigned:
                 return literal
         return None
