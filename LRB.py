@@ -7,13 +7,13 @@ class LRB:
     def __init__(self, sentence, alpha=0.4):
         self.alpha = alpha
         self.learn_counter = 0
-        self.ema, self.assigned_at, self.participated_in, self.assigned = {}, {}, {}, {}
+        self.ema, self.assigned_at, self.participated_in = {}, {}, {}
         for clause in sentence:
             for literal in clause:
                 self.ema[literal] = 0.0
                 self.assigned_at[literal] = 0
                 self.participated_in[literal] = 0
-                self.assigned[literal] = False
+                # self.assigned[literal] = False
 
     def after_confilct_analysis(self, learnt_clause_literals, conflict_side_literals):
         """Called after a learnt clause is generated from conflict analysis."""
@@ -42,7 +42,7 @@ class LRB:
         """Called when a literaliable is assigned or propagated."""
         self.assigned_at[literal] = self.learn_counter
         self.participated_in[literal] = 0
-        self.assigned[literal] = True
+        # self.assigned[literal] = True
 
     def on_unassign(self, literal):
         """Called when a literal is unassigned by backtracking or restart."""
@@ -50,11 +50,12 @@ class LRB:
         if interval > 0:
             reward = float(self.participated_in[literal]) / interval
             self.ema[literal] = self.alpha * reward + (1 - self.alpha) * self.ema[literal]
-        self.assigned[literal] = False
+        # self.assigned[literal] = False
 
-    def decide(self):
+    def decide(self, assigned):
         for literal in self.ema:
-            if not self.assigned[literal] and not self.assigned[-literal]:
+            # if not self.assigned[literal] and not self.assigned[-literal]:
+            if literal not in assigned and -literal not in assigned:
                 return literal
         return None
 

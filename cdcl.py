@@ -2,7 +2,7 @@ import bisect
 from heuristics import *
 
 
-def bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic, is_backtrack=False):
+def bcp(sentence, assignment, assigned, c2l_watch, l2c_watch, heuristic, is_backtrack=False):
     """Propagate unit clauses with watched literals."""
 
     """ YOUR CODE HERE """
@@ -11,15 +11,15 @@ def bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic, is_backtrack=Fals
         is_unit_or_conflict = True
         for literal in sentence[clause_idx]:  # o.s. checking for all literal in clause
             # if having satisfied literal, check next clause
-            # if literal in assignment[0]:
-            if heuristic.assigned[literal]:
+            if literal in assigned:
+            # if heuristic.assigned[literal]:
                 is_unit_or_conflict = False
                 idx += 1
                 break
             # if having any literal whose negation unassigned, adjust watching literals for this clause, o.w.
             # this clause is unit or conflict
-            # if literal not in c2l_watch[clause_idx] and -literal not in assignment[0]:
-            if literal not in c2l_watch[clause_idx] and not heuristic.assigned[-literal]:
+            if literal not in c2l_watch[clause_idx] and -literal not in assigned:
+            # if literal not in c2l_watch[clause_idx] and not heuristic.assigned[-literal]:
                 c2l_watch[clause_idx].remove(-assignment[0][i])
                 l2c_watch[-assignment[0][i]].remove(clause_idx)
                 c2l_watch[clause_idx].append(literal)
@@ -31,9 +31,9 @@ def bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic, is_backtrack=Fals
     def check_satisfied(i0, i1, literal_idx):
         """check if clause already sat or has two validate literals watching"""
         satisfied = False
-        if any([heuristic.assigned[i0], heuristic.assigned[i1]]) or all(
-                [not heuristic.assigned[-i0], not heuristic.assigned[-i1]]):
-            # if any([i0 in assignment[0], i1 in assignment[0]]) or all([-i0 not in assignment[0], -i1 not in assignment[0]]):
+        # if any([heuristic.assigned[i0], heuristic.assigned[i1]]) or all(
+        #         [not heuristic.assigned[-i0], not heuristic.assigned[-i1]]):
+        if any([i0 in assigned, i1 in assigned]) or all([-i0 not in assigned, -i1 not in assigned]):
             literal_idx += 1
             satisfied = True
         return satisfied, literal_idx
@@ -43,6 +43,7 @@ def bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic, is_backtrack=Fals
         if is_backtrack:  # if rerun bcp after backtracking, assign value for the newly learned unit clause
             assignment[0].append(c2l_watch[len(sentence) - 1][0])
             assignment[1].append(len(sentence) - 1)
+            assigned.add(c2l_watch[len(sentence) - 1][0])
             heuristic.on_assign(c2l_watch[len(sentence) - 1][0])
             return 1
         return 0
@@ -56,6 +57,7 @@ def bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic, is_backtrack=Fals
                 if literals[0] not in assignment:
                     assignment[0].append(literals[0])
                     assignment[1].append(clause_idx)
+                    assigned.add(literals[0])
                     heuristic.on_assign(literals[0])
         return None
 
@@ -80,6 +82,7 @@ def bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic, is_backtrack=Fals
                     return list(sentence[clause_idx])
                 assignment[0].append(another)  # unit clause
                 assignment[1].append(clause_idx)
+                assigned.add(another)
                 # heuristic.assigned[another] = True
                 heuristic.on_assign(another)
         i += 1
@@ -90,7 +93,6 @@ def init_watch(sentence, num_vars):
     """Initialize the watched literal data structure."""
     c2l_watch = {}  # clause -> literal
     l2c_watch = {}  # literal -> watch
-
     """ YOUR CODE HERE """
     for i in range(len(sentence)):
         c2l_watch[i] = [sentence[i][0]]
@@ -147,7 +149,7 @@ def analyze_conflict(sentence, assignment, decided_idxs, conflict_ante):
     return backtrack_level, learned_clause, conflict_side_literals
 
 
-def backtrack(assignment, decided_idxs, level, heuristic):
+def backtrack(assignment, assigned, decided_idxs, level, heuristic):
     """Backtrack by deleting assigned variables.
     keep all assigned literals with level <= backtrack_level"""
 
@@ -157,6 +159,7 @@ def backtrack(assignment, decided_idxs, level, heuristic):
         assignment[1].pop()
         unassigned_literals.append(assignment[0].pop())
         heuristic.on_unassign(unassigned_literals[-1])
+    assigned -= set(unassigned_literals)
     heuristic.rearrange(unassigned_literals)
     # new_ass = [assignment[0][:decided_idxs[level]], assignment[1][:decided_idxs[level]]]
     new_dec = decided_idxs[:level]
@@ -193,28 +196,31 @@ def cdcl(sentence, num_vars, assignment_algorithm):
     c2l_watch, l2c_watch = init_watch(sentence, num_vars)
     # assignment[0] is the list of literals, assignment[1] is the list of antecedents of corresponding literals
     assignment, decided_idxs = [[], []], []
+    assigned = set()
+
     if assignment_algorithm == 'LRB':
         heuristic = LRB(sentence, 0.4)
     # else:
-    #     heuristic = decide_vsids
+    #     heuristic = VSIDS(vsids_scores, 0.5)
     # Run BCP.
-    if bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic) is not None:
+    if bcp(sentence, assignment, assigned, c2l_watch, l2c_watch, heuristic) is not None:
         return None  # indicate UNSAT
 
     # Main loop.
     while len(assignment[0]) < num_vars:
         # assigned_lit = heuristic(vsids_scores, assignment)
-        assigned_lit = heuristic.decide()
+        assigned_lit = heuristic.decide(assigned)
         # NOTE
         if assigned_lit is None:  # all variables are assigned(find an assignment), finish the loop
             return assignment[0]
         decided_idxs.append(len(assignment[0]))
         assignment[0].append(assigned_lit)
         assignment[1].append(None)
+        assigned.add(assigned_lit)
         # heuristic.assigned[assigned_lit] = True
         heuristic.on_assign(assigned_lit)
         # Run BCP.
-        conflict_ante = bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic)
+        conflict_ante = bcp(sentence, assignment, assigned, c2l_watch, l2c_watch, heuristic)
         while conflict_ante is not None:
             # Learn conflict.
             backtrack_level, learned_clause, conflict_side_literals = analyze_conflict(sentence, assignment,
@@ -229,9 +235,9 @@ def cdcl(sentence, num_vars, assignment_algorithm):
 
             # Backtrack.
 
-            backtrack(assignment, decided_idxs, backtrack_level, heuristic)
+            backtrack(assignment, assigned, decided_idxs, backtrack_level, heuristic)
 
             # Propagate watch.
-            conflict_ante = bcp(sentence, assignment, c2l_watch, l2c_watch, heuristic, True)
+            conflict_ante = bcp(sentence, assignment, assigned, c2l_watch, l2c_watch, heuristic, True)
 
     return assignment[0]  # indicate SAT
