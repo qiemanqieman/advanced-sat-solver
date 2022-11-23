@@ -7,16 +7,17 @@ from utils import read_cnf, verify
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    # parser.add_argument("-a", "--assignment_alogrithm", type=str, default="VSIDS")
-    parser.add_argument("-a", "--assignment_alogrithm", type=str, default="LRB")
+    parser.add_argument("-a", "--assignment-alogrithm", type=str, default="LRB",
+                        help="Case sensitive, heuristic branching algorithm for assigning next literal",
+                        choices=["VSIDS", "LRB"])
     parser.add_argument(
         # "-i", "--input", type=str, default="examples/and1.cnf"
         # "-i", "--input", type=str, default="examples/and2.cnf"
         # "-i", "--input", type=str, default="examples/bmc-1.cnf"
-        # "-i", "--input", type=str, default="examples/bmc-2.cnf",
-        "-i", "--input", type=str, default="examples/bmc-7.cnf"
+        "-i", "--input", type=str, default="examples/bmc-2.cnf",
+        # "-i", "--input", type=str, default="examples/bmc-7.cnf", help="specify the CNF file needed to be solved"
         # "-i", "--input", type=str, default="my-examples/track-main-2018/2d5cc23d8d805a0cf65141e4b4401ba4-20180322_164245263_p_cnf_320_1120.cnf"
-        # "-i", "--input", type=str, default="my-examples/good-16-vars.cnf"
+        # "-i", "--input", type=str, default="my-examples/good-13-vars.cnf"
         # "-i", "--input", type=str, default="my-examples/bad-12-vars.cnf"
         # "-i", "--input", type=str, default="my-examples/test.cnf"
     )
@@ -30,7 +31,7 @@ def main(args):
         sentence, num_vars = read_cnf(f)
 
     # Create CDCL solver and solve it!
-    start = time.time() # compute time
+    start = time.time()  # compute time
     res = CDCL(sentence, num_vars, args.assignment_alogrithm).solve()
     if res is None:
         print("✘ No solution found")
