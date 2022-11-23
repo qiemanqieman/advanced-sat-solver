@@ -3,6 +3,10 @@ from heuristics import LRB, VSIDS
 
 class CDCL:
     def __init__(self, sentence, num_vars, assignment_algorithm):
+        """To simplify the use of data structures, `sentence` is a list of lists where each list
+        is a clause. Each clause is a list of literals, where a literal is a signed integer.
+        `assignment` is also a list of literals in the order of their assignment.
+        """
         # Initialize some data structures.
         self.sentence = sentence
         self.num_vars = num_vars
@@ -10,17 +14,14 @@ class CDCL:
         # assignment[0] is the list of literals, assignment[1] is the list of antecedents of corresponding literals
         self.assignment, self.decided_idxs = [[], []], []
         self.assigned = set()
-        if assignment_algorithm == 'LRB':
+        if assignment_algorithm.lower() == 'lrb':
             self.heuristic = LRB(sentence, 0.4)
-        else:
+        elif assignment_algorithm.lower() == 'vsids':
             self.heuristic = VSIDS(sentence, 0.95)
 
     def solve(self):
-        """Run a CDCL solver for the SAT problem.
-
-        To simplify the use of data structures, `sentence` is a list of lists where each list
-        is a clause. Each clause is a list of literals, where a literal is a signed integer.
-        `assignment` is also a list of literals in the order of their assignment.
+        """Run the `CDCL` solver for the `SAT` problem.
+        This is the only interface for users.
         """
         # Run BCP.
         if self._bcp(): return None  # indicate UNSAT
@@ -41,7 +42,7 @@ class CDCL:
                 if backtrack_level < 0:  # conflict clause level is 0, UNSAT, finish the loop
                     return None
                 self._add_learned_clause(learned_clause)
-                self.heuristic.after_confilct_analysis(learned_clause, conflict_side_literals)
+                self.heuristic.after_conflict_analysis(learned_clause, conflict_side_literals)
 
                 # Backtrack.
                 self._backtrack(backtrack_level)
@@ -85,14 +86,14 @@ class CDCL:
             while idx < len(watch_clauses):  # iterate all clause
                 clause_idx = watch_clauses[idx]
                 l0, l1 = self.c2l_watch[clause_idx]
-                satisfied = self.check_satisfied(l0, l1)
+                satisfied = self._check_satisfied(l0, l1)
                 if satisfied:
                     idx += 1
                     continue
                 propagated, is_unit_or_conflict = self._propagate_watch_on_clause(handle_lit, clause_idx)
                 if not propagated: idx += 1
                 if is_unit_or_conflict:
-                    conflict_clause = self.handle_unit_or_conflict(clause_idx, l0, l1, handle_lit)
+                    conflict_clause = self._handle_unit_or_conflict(clause_idx, l0, l1, handle_lit)
                     if conflict_clause: return conflict_clause
             i += 1
         return None  # indicate no conflict; other return the antecedent of the conflict
@@ -106,8 +107,8 @@ class CDCL:
             if literal in self.assigned:
                 is_unit_or_conflict = False
                 break
-            # if having any literal whose negation unassigned, adjust watching literals for this clause, o.w.
-            # this clause is unit or conflict
+            # if having any literal whose negation unassigned, adjust watching literals for this clause,
+            # o.w., this clause is unit or conflict
             if literal not in self.c2l_watch[clause_idx] and -literal not in self.assigned:
                 self.c2l_watch[clause_idx].remove(lit)
                 self.l2c_watch[lit].remove(clause_idx)
@@ -118,12 +119,11 @@ class CDCL:
                 break
         return propagated, is_unit_or_conflict
 
-    def check_satisfied(self, l0, l1):
+    def _check_satisfied(self, l0, l1):
         """check if clause already sat or already has two validate literals watching"""
         satisfied = False
         if any([l0 in self.assigned, l1 in self.assigned]) or all(
                 [-l0 not in self.assigned, -l1 not in self.assigned]):
-            # literal_idx += 1
             satisfied = True
         return satisfied
 
@@ -137,13 +137,13 @@ class CDCL:
         """handle run bcp for the first time, handle all clauses with only 1 literal"""
         for clause_idx, literals in self.c2l_watch.items():
             if len(literals) == 1:  # unit clause
-                if -literals[0] in self.assignment:
+                if -literals[0] in self.assigned:
                     return list(self.sentence[clause_idx])
-                if literals[0] not in self.assignment:
+                if literals[0] not in self.assigned:
                     self._handle_assign(literals[0], clause_idx)
         return None
 
-    def handle_unit_or_conflict(self, clause_idx, l0, l1, handle_lit):
+    def _handle_unit_or_conflict(self, clause_idx, l0, l1, handle_lit):
         """handle unit clause or conflict clause"""
         another = l0 if l0 != handle_lit else l1
         if -another in self.assigned:  # conflicted clause
@@ -153,8 +153,8 @@ class CDCL:
 
     def _resolve(self, clause1, clause2):
         """resolve two clause, one is conflict clause, another is unit clause, the result is conflict clause"""
-        c = set(clause1 + clause2)
-        clause = [l for l in c if -l not in c]
+        clause1.update(clause2)
+        clause = set([l for l in clause1 if -l not in clause1])
         return clause
 
     def _level_of(self, literal):
@@ -186,12 +186,15 @@ class CDCL:
                        list(self.assignment[1][self.decided_idxs[-1]:])]
         assignments[0].reverse()  # and put the latest assigned to the start
         assignments[1].reverse()
-        highest_level_literals = [-literal for literal in assignments[0] if -literal in conflict_ante]
+        ass = dict()
+        for i in range(len(assignments[0])):
+            ass.update([(assignments[0][i], assignments[1][i])])
+        conflict_ante = set(conflict_ante)  # use set to accelerate
+        highest_level_literals = [-literal for literal in ass if -literal in conflict_ante]
         while len(highest_level_literals) > 1:
             conflict_side_literals.append(highest_level_literals[0])
-            conflict_ante = self._resolve(conflict_ante, self.sentence[
-                self.assignment[1][self.assignment[0].index(-highest_level_literals[0])]])
-            highest_level_literals = [-literal for literal in assignments[0] if -literal in conflict_ante]
+            conflict_ante = self._resolve(conflict_ante, self.sentence[ass[-highest_level_literals[0]]])
+            highest_level_literals = [-literal for literal in ass if -literal in conflict_ante]
         if len(highest_level_literals) == 1:
             learned_clause = sorted(conflict_ante, key=lambda key: self._level_of(-key), reverse=True)
             backtrack_level = 0 if len(learned_clause) == 1 else self._level_of(-learned_clause[1])
@@ -200,25 +203,19 @@ class CDCL:
     def _backtrack(self, level):
         """Backtrack by deleting assigned variables.
         keep all assigned literals with level <= backtrack_level"""
-
-        """ YOUR CODE HERE """
-        unassigned_literals = []
-        for i in range(self.decided_idxs[level], len(self.assignment[0])):
-            self.assignment[1].pop()
-            unassigned_literals.append(self.assignment[0].pop())
-            self.heuristic.on_unassign(unassigned_literals[-1])
+        unassigned_literals = self.assignment[0][self.decided_idxs[level]:]
+        self.assignment[0] = self.assignment[0][:self.decided_idxs[level]]
+        self.assignment[1] = self.assignment[1][:self.decided_idxs[level]]
+        for literal in unassigned_literals:
+            self.heuristic.on_unassign(literal)
         self.assigned -= set(unassigned_literals)
         self.heuristic.rearrange(unassigned_literals)
-        new_dec = self.decided_idxs[:level]
-        self.decided_idxs.clear()
-        self.decided_idxs += new_dec
+        self.decided_idxs = self.decided_idxs[:level]
 
     def _add_learned_clause(self, learned_clause):
         """Add learned clause to the sentence and update watch.
         learned_clause is unit and in decreasing order of assignment. We choose to watch the first literal which
         is the only one satisfiable. This can promise least check of this clause for later rerun `bcp(...)` """
-
-        """ YOUR CODE HERE """
         i = len(self.sentence)
         self.sentence.append(learned_clause)
         self.c2l_watch[i] = [self.sentence[i][0]]

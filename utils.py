@@ -1,6 +1,5 @@
 def read_cnf(fp):
     sentence = []
-
     for line in fp:
         if line.startswith('c'):
             continue
@@ -11,9 +10,7 @@ def read_cnf(fp):
             line = line.split()
             clause = [int(x) for x in line[:-1]]
             sentence.append(clause)
-
     assert len(sentence) == num_clauses
-
     return sentence, num_vars
 
 
@@ -24,7 +21,6 @@ def verify(sentence, solution):
     :param solution: list of int, signed literals, -5 means variable_5 is False(or in other word, literal_-5 is True)
     :return: True or False
     """
-
     solution = set(solution)
 
     def clause_is_true(cl):
