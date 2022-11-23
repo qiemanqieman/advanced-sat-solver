@@ -48,10 +48,8 @@ class LRB(Heuristic):
         for lit in unassigned_literals:
             need_adjust_order.append([self.ema.pop(lit), lit])
         scores = [[i[1], i[0]] for i in self.ema.items()]
-        # scores.reverse()
         for i in need_adjust_order:
             bisect.insort(scores, i)  # use bisect method for accelerating the operation of maintaining order
-        # scores.reverse()
         scores = [(i[1], i[0]) for i in scores]
         self.ema.clear()
         self.ema.update(scores)

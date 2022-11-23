@@ -19,7 +19,6 @@ class VSIDS(Heuristic):
         for clause in sentence:
             for literal in clause:
                 scores[literal] = scores.get(literal, 0) + 1
-        # return dict(sorted(scores.items(), key=lambda i: i[1], reverse=True))
         return dict(sorted(scores.items(), key=lambda i: i[1]))
 
     def _update_vsids_scores(self, vsids_scores, learned_clause):
@@ -34,9 +33,7 @@ class VSIDS(Heuristic):
         # scores.reverse()
         for i in increased:
             bisect.insort(scores, i)  # use bisect method for accelerating the operation of maintaining order
-        # scores.reverse()
         scores = [(i[1], i[0]) for i in scores]
-        # scores = dict(scores)
         vsids_scores.clear()
         vsids_scores.update(scores)
 
