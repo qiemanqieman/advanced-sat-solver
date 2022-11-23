@@ -37,21 +37,21 @@ class LRB(Heuristic):
 
     def decide(self, assigned):
         """decide which literal to be assigned next"""
-        for literal in self.ema:
+        for literal in reversed(self.ema):
             if literal not in assigned and -literal not in assigned:
                 return literal
         return None
 
     def rearrange(self, unassigned_literals):
-        """Rearrange literals order in self.ema, maintain them in descending order."""
+        """Rearrange literals order in self.ema, maintain them in ascending order."""
         need_adjust_order = []
         for lit in unassigned_literals:
             need_adjust_order.append([self.ema.pop(lit), lit])
         scores = [[i[1], i[0]] for i in self.ema.items()]
-        scores.reverse()
+        # scores.reverse()
         for i in need_adjust_order:
             bisect.insort(scores, i)  # use bisect method for accelerating the operation of maintaining order
-        scores.reverse()
+        # scores.reverse()
         scores = [(i[1], i[0]) for i in scores]
         self.ema.clear()
         self.ema.update(scores)

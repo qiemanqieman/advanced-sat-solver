@@ -137,9 +137,9 @@ class CDCL:
         """handle run bcp for the first time, handle all clauses with only 1 literal"""
         for clause_idx, literals in self.c2l_watch.items():
             if len(literals) == 1:  # unit clause
-                if -literals[0] in self.assignment:
+                if -literals[0] in self.assigned:
                     return list(self.sentence[clause_idx])
-                if literals[0] not in self.assignment:
+                if literals[0] not in self.assigned:
                     self._handle_assign(literals[0], clause_idx)
         return None
 
@@ -203,16 +203,14 @@ class CDCL:
     def _backtrack(self, level):
         """Backtrack by deleting assigned variables.
         keep all assigned literals with level <= backtrack_level"""
-        unassigned_literals = []
-        for i in range(self.decided_idxs[level], len(self.assignment[0])):
-            self.assignment[1].pop()
-            unassigned_literals.append(self.assignment[0].pop())
-            self.heuristic.on_unassign(unassigned_literals[-1])
+        unassigned_literals = self.assignment[0][self.decided_idxs[level]:]
+        self.assignment[0] = self.assignment[0][:self.decided_idxs[level]]
+        self.assignment[1] = self.assignment[1][:self.decided_idxs[level]]
+        for literal in unassigned_literals:
+            self.heuristic.on_unassign(literal)
         self.assigned -= set(unassigned_literals)
         self.heuristic.rearrange(unassigned_literals)
-        new_dec = self.decided_idxs[:level]
-        self.decided_idxs.clear()
-        self.decided_idxs += new_dec
+        self.decided_idxs = self.decided_idxs[:level]
 
     def _add_learned_clause(self, learned_clause):
         """Add learned clause to the sentence and update watch.

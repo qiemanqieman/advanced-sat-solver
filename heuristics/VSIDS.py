@@ -19,7 +19,8 @@ class VSIDS(Heuristic):
         for clause in sentence:
             for literal in clause:
                 scores[literal] = scores.get(literal, 0) + 1
-        return dict(sorted(scores.items(), key=lambda i: i[1], reverse=True))
+        # return dict(sorted(scores.items(), key=lambda i: i[1], reverse=True))
+        return dict(sorted(scores.items(), key=lambda i: i[1]))
 
     def _update_vsids_scores(self, vsids_scores, learned_clause):
         """Update VSIDS scores.
@@ -30,10 +31,10 @@ class VSIDS(Heuristic):
         for lit in vsids_scores:
             vsids_scores[lit] = vsids_scores[lit] * self.decay
         scores = [[i[1], i[0]] for i in vsids_scores.items()]
-        scores.reverse()
+        # scores.reverse()
         for i in increased:
             bisect.insort(scores, i)  # use bisect method for accelerating the operation of maintaining order
-        scores.reverse()
+        # scores.reverse()
         scores = [(i[1], i[0]) for i in scores]
         # scores = dict(scores)
         vsids_scores.clear()
@@ -55,7 +56,7 @@ class VSIDS(Heuristic):
         """Decide which variable to assign and whether to assign True or False.
         reset value to 0 for those have been assigned and reposition to the end so that new learned clause's literal will have
         more chance to be chosen"""
-        for literal in self.vsids_scores:
+        for literal in reversed(self.vsids_scores):
             if literal not in assigned and -literal not in assigned:
                 return literal
         return None
