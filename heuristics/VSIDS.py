@@ -33,8 +33,11 @@ class VSIDS(Heuristic):
         vsids_scores.clear()
         vsids_scores.update(scores)
 
-    def after_conflict_analysis(self, learnt_clause_literals, conflict_side_literals):
-        """Called after a learnt clause is generated from conflict analysis."""
+    def after_conflict_analysis(self, learnt_clause_literals, conflict_side_literals, sentence=None, assign_info=None):
+        """Called after a learnt clause is generated from conflict analysis.
+        :param sentence:
+        :param assign_info:
+        """
         self._update_vsids_scores(self.vsids_scores, learnt_clause_literals)
 
     def on_assign(self, literal):

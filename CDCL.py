@@ -1,9 +1,9 @@
-from heuristics import LRB, VSIDS
+from heuristics import VSIDS, ERWA, RSR, LRB
 from AssignInfo import AssignInfo
 
 
 class CDCL:
-    def __init__(self, sentence, num_vars, assignment_algorithm):
+    def __init__(self, sentence, num_vars, assignment_algorithm, alpha, discount, batch):
         """To simplify the use of data structures, `sentence` is a list of lists where each list
         is a clause. Each clause is a list of literals, where a literal is a signed integer.
         `assignment` is also a list of literals in the order of their assignment.
@@ -13,10 +13,16 @@ class CDCL:
         self.num_vars = num_vars
         self.c2l_watch, self.l2c_watch = self._init_watch()
         self.ai = AssignInfo()
-        if assignment_algorithm.lower() == 'lrb':
-            self.heuristic = LRB(sentence, 0.4)
-        elif assignment_algorithm.lower() == 'vsids':
-            self.heuristic = VSIDS(sentence, 0.95)
+        if assignment_algorithm.lower() == 'vsids':
+            self.heuristic = VSIDS(sentence, discount)
+        elif assignment_algorithm.lower() == 'erwa':
+            self.heuristic = ERWA(sentence, alpha)
+        elif assignment_algorithm.lower() == 'rsr':
+            self.heuristic = RSR(sentence, alpha)
+        elif assignment_algorithm.lower() == 'lrb':
+            self.heuristic = LRB(sentence, alpha, discount, batch)
+        else:
+            raise ValueError('Unknown assignment algorithm: {}'.format(assignment_algorithm))
 
     def solve(self):
         """Run the `CDCL` solver for the `SAT` problem.
@@ -30,7 +36,7 @@ class CDCL:
             assigned_lit = self.heuristic.decide(self.ai.assigned)
             # NOTE
             if assigned_lit is None:  # all variables are assigned(find an assignment), finish the loop
-                return self.ai.assignment
+                return self.ai.assignments
             self.ai.decided_idxs.append(len(self.ai.assigned))
             self._handle_assign(assigned_lit, None)
             # Run BCP.
@@ -41,7 +47,7 @@ class CDCL:
                 if backtrack_level < 0:  # conflict clause level is 0, UNSAT, finish the loop
                     return None
                 self._add_learned_clause(learned_clause)
-                self.heuristic.after_conflict_analysis(learned_clause, conflict_side_literals)
+                self.heuristic.after_conflict_analysis(learned_clause, conflict_side_literals, self.sentence, self.ai)
 
                 # Backtrack.
                 self._backtrack(backtrack_level)
@@ -49,7 +55,7 @@ class CDCL:
                 # Propagate watch.
                 conflict_ante = self._bcp(True)
 
-        return self.ai.assignment  # indicate SAT
+        return self.ai.assignments  # indicate SAT
 
     def _handle_assign(self, lit, ante):
         """Assign a literal. maintain relevant data structure"""
@@ -78,7 +84,7 @@ class CDCL:
             conflict_clause = self._handle_first_time_to_run()
             if conflict_clause: return conflict_clause
         while i < len(self.ai.assigned):  # iterate all new assignments
-            handle_lit = -self.ai.assignment[i]
+            handle_lit = -self.ai.assignments[i]
             watch_clauses, idx = self.l2c_watch.get(handle_lit, []), 0
             while idx < len(watch_clauses):  # iterate all clause
                 clause_idx = watch_clauses[idx]

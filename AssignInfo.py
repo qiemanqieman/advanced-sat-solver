@@ -3,15 +3,15 @@ class AssignInfo:
     A struct used for recording the assignment information
     """
     def __init__(self):
-        self.assignment = []
-        self.conflict_ante = []
+        self.assignments = []
+        self.antes = []
         self.decided_idxs = []
         self.assigned = set()
         self.assigned_idxs = {}
 
     def on_assign(self, lit, ante):
-        self.assignment.append(lit)
-        self.conflict_ante.append(ante)
+        self.assignments.append(lit)
+        self.antes.append(ante)
         self.assigned_idxs.update({lit: len(self.assigned)})
         self.assigned.add(lit)
 
@@ -20,7 +20,7 @@ class AssignInfo:
         if self._conflict_clause_level_is_0(conflict_ante):
             return -1, learned_clause, conflict_side_literals
         # get the highest level's assignments
-        ass = dict([(self.assignment[i], self.conflict_ante[i]) for i in
+        ass = dict([(self.assignments[i], self.antes[i]) for i in
                     range(len(self.assigned) - 1, self.decided_idxs[-1] - 1, -1)])
         conflict_ante = set(conflict_ante)  # use set to accelerate
         highest_level_literals = [-literal for literal in ass if -literal in conflict_ante]
@@ -35,9 +35,9 @@ class AssignInfo:
 
     def backtrack(self, level):
         """backtrack to the level"""
-        unassigned_literals = self.assignment[self.decided_idxs[level]:]
-        self.assignment = self.assignment[:self.decided_idxs[level]]
-        self.conflict_ante = self.conflict_ante[:self.decided_idxs[level]]
+        unassigned_literals = self.assignments[self.decided_idxs[level]:]
+        self.assignments = self.assignments[:self.decided_idxs[level]]
+        self.antes = self.antes[:self.decided_idxs[level]]
         for literal in unassigned_literals:
             self.assigned_idxs.pop(literal)
             self.assigned.remove(literal)

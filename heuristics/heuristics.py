@@ -9,8 +9,11 @@ from abc import ABC, abstractmethod
 class Heuristic(ABC):
     """The abstract base class for all heuristic branching algorithm of CDCL SAT solver"""
     @abstractmethod
-    def after_conflict_analysis(self, learnt_clause_literals, conflict_side_literals):
-        """Called after a learnt clause is generated from conflict analysis."""
+    def after_conflict_analysis(self, learnt_clause_literals, conflict_side_literals, sentence=None, assign_info=None):
+        """Called after a learnt clause is generated from conflict analysis.
+        :param sentence:
+        :param assign_info:
+        """
         pass
 
     @abstractmethod
