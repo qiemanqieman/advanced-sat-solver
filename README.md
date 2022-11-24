@@ -4,15 +4,20 @@ A pure-python implemented SAT solver using CDCL equipped with several techniques
 which include VSIDS, LRB, DLIS, MOMS, and so on.
 
 ## Usage
-```python main.py [-h] [-a {VSIDS,LRB}] [-i INPUT]``` \
+```python main.py [-h] [-a {VSIDS,ERMA,RSR,LRB}] [-i INPUT] [-discount D] [-alpha A] [-batch B]``` \
 `python main.py -h` for more details.
 
 ### Arguments
-``` -h, --help            show this help message and exit
-  -a {VSIDS,LRB}, --assignment-alogrithm {VSIDS,LRB}
-                        heuristic branching algorithm for assigning next literal
+``` 
+  -h, --help            show this help message and exit
+  --discount D          discount coefficient for decaying
+  --alpha A             step-size coefficient for algorithms based on ERMA
+  -batch A              batch parameter used in LRB algorithm
+  -a {VSIDS,ERWA,RSR,LRB}, --assignment-alogrithm {VSIDS,ERWA,RSR,LRB}
+                        Case-sensitive, heuristic branching algorithm for assigning next literal
   -i INPUT, --input INPUT
-                        specify the CNF file needs to be solved
+                        specify the CNF file needed to be solved
+
 ```
 
 ### Example
