@@ -1,54 +1,27 @@
-import bisect
-from .heuristics import Heuristic
+from .RSR import RSR
 
 
-class LRB(Heuristic):
-    """The learning rate branching(LRB) algorithm."""
-    def __init__(self, sentence, alpha=0.4):
-        self.alpha = alpha
-        self.learn_counter = 0
-        self.ema, self.assigned_at, self.participated_in = {}, {}, {}
-        for clause in sentence:
-            for literal in clause:
-                self.ema[literal] = 0.0
-                self.assigned_at[literal] = 0
-                self.participated_in[literal] = 0
+class LRB(RSR):
+    """The learning rate branching(LRB) algorithm.
+    It extends RSR algorithm by considering the locality."""
+    def __init__(self, sentence, alpha=0.4, discount=0.95, batch=10):
+        super().__init__(sentence, alpha)
+        self.discount = discount
+        self.batch = batch
+        self.counter = 0
+        self.recorder = {}
 
-    def after_conflict_analysis(self, learnt_clause_literals, conflict_side_literals):
+    def after_conflict_analysis(self, learnt_clause_literals, conflict_side_literals, sentence=None, assign_info=None):
         """Called after a learnt clause is generated from conflict analysis."""
-        self.learn_counter += 1
-        self.alpha = max(0.06, self.alpha - 1e-6)
-        for literal in learnt_clause_literals:
-            self.participated_in[literal] += 1
-        for literal in conflict_side_literals:
-            self.participated_in[literal] += 1
+        super().after_conflict_analysis(learnt_clause_literals, conflict_side_literals, sentence, assign_info)
+        for lit in learnt_clause_literals:
+            self.recorder[lit] = self.recorder.get(lit, 0) + 1
+        self.counter += 1
+        if self.counter % self.batch == 0:
+            self._reorder()
 
-    def on_assign(self, literal):
-        """Called when a literal is assigned or propagated."""
-        self.assigned_at[literal] = self.learn_counter
-        self.participated_in[literal] = 0
-
-    def on_unassign(self, literal):
-        """Called when a literal is unassigned by backtracking or restart."""
-        interval = self.learn_counter - self.assigned_at[literal]
-        if interval > 0:
-            reward = float(self.participated_in[literal]) / interval
-            self.ema[literal] = self.alpha * reward + (1 - self.alpha) * self.ema[literal]
-
-    def decide(self, assigned):
-        """decide which literal to be assigned next"""
-        for literal in reversed(self.ema):
-            if literal not in assigned and -literal not in assigned:
-                return literal
-        return None
-
-    def rearrange(self, unassigned_literals):
-        """Rearrange literals order in self.ema, maintain them in ascending order."""
-        need_adjust_order = []
-        for lit in unassigned_literals:
-            need_adjust_order.append((lit, self.ema.pop(lit)))
-        weight = list(self.ema.items())
-        for i in need_adjust_order:
-            bisect.insort(weight, i, key=lambda key: key[1])  # use bisect method for accelerating the operation of maintaining order
-        self.ema.clear()
-        self.ema.update(weight)
+    def _reorder(self):
+        for lit in self.ema:
+            self.ema[lit] = self.ema[lit] * self.discount ** (self.batch - self.recorder.get(lit, 0))
+        self.ema = dict(sorted(self.ema.items(), key=lambda i: i[1]))
+        self.recorder = {}
