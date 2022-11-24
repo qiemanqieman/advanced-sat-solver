@@ -46,12 +46,9 @@ class LRB(Heuristic):
         """Rearrange literals order in self.ema, maintain them in ascending order."""
         need_adjust_order = []
         for lit in unassigned_literals:
-            need_adjust_order.append([self.ema.pop(lit), lit])
-        scores = [[i[1], i[0]] for i in self.ema.items()]
-        # scores.reverse()
+            need_adjust_order.append((lit, self.ema.pop(lit)))
+        weight = list(self.ema.items())
         for i in need_adjust_order:
-            bisect.insort(scores, i)  # use bisect method for accelerating the operation of maintaining order
-        # scores.reverse()
-        scores = [(i[1], i[0]) for i in scores]
+            bisect.insort(weight, i, key=lambda key: key[1])  # use bisect method for accelerating the operation of maintaining order
         self.ema.clear()
-        self.ema.update(scores)
+        self.ema.update(weight)
