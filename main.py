@@ -7,9 +7,9 @@ from utils import read_cnf, verify
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--discount", type=float, default=0.95, help="discount coefficient for decaying")
-    parser.add_argument("--alpha", type=float, default=0.4, help="step-size coefficient for algorithms based on ERMA")
-    parser.add_argument("-batch", type=int, default=10, help="batch parameter used in LRB algorithm")
+    parser.add_argument("--discount", type=float, metavar="D", default=0.95, help="discount coefficient for decaying")
+    parser.add_argument("--alpha", type=float, metavar="A", default=0.4, help="step-size coefficient for algorithms based on ERMA")
+    parser.add_argument("-batch", type=int, metavar="A", default=10, help="batch parameter used in LRB algorithm")
     parser.add_argument("-a", "--assignment-alogrithm", type=str, choices=["VSIDS", "ERWA", "RSR", "LRB"],
                         help="Case-sensitive, heuristic branching algorithm for assigning next literal",
                         default=
