@@ -36,4 +36,8 @@ Some links for the details of all kinds of algorithm used
 in this project
 
 ### ERMA & RSR & LRB
-https://link.springer.com/chapter/10.1007/978-3-319-40970-2_9#Tab4
+Full paper can be read [online ](https://link.springer.com/chapter/10.1007/978-3-319-40970-2_9#Tab4)
+
+
+### CHB
+Full paper can be downloaded from [here](https://dl.acm.org/doi/10.5555/3016100.3016385)
