@@ -16,8 +16,8 @@ which include VSIDS, LRB, DLIS, MOMS, and so on.
 ```
 
 ### Example
-```python main.py -a VSIDS -i ./examples/bmc-2.cnf```
-![img.png](results/bmc-2-vsids.png)
+```python main.py -a LRB -i ./examples/bmc-1.cnf```
+![img.png](results/lrb-bmc-1.png)
 ## Currently tested efficiency
 | File      | VSIDS  | LRB    |
 |-----------|--------|--------|
