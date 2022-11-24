@@ -26,14 +26,10 @@ class VSIDS(Heuristic):
         note that the sorting order should be maintained"""
         increased = []
         for lit in learned_clause:
-            increased.append([(vsids_scores.pop(lit) + 1) * self.decay, lit])
-        for lit in vsids_scores:
-            vsids_scores[lit] = vsids_scores[lit] * self.decay
-        scores = [[i[1], i[0]] for i in vsids_scores.items()]
-        # scores.reverse()
+            increased.append((lit, (vsids_scores.pop(lit) + 1) * self.decay))
+        scores = [(i[0], i[1] * self.decay) for i in vsids_scores.items()]
         for i in increased:
-            bisect.insort(scores, i)  # use bisect method for accelerating the operation of maintaining order
-        scores = [(i[1], i[0]) for i in scores]
+            bisect.insort(scores, i, key=lambda key: key[1])  # use bisect method for accelerating the operation of maintaining order
         vsids_scores.clear()
         vsids_scores.update(scores)
 

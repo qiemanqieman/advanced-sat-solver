@@ -18,7 +18,7 @@ def parse_args():
         # "-i", "--input", type=str, default="examples/bmc-7.cnf", help="specify the CNF file needed to be solved"
         # "-i", "--input", type=str, default="my-examples/track-main-2018/2d5cc23d8d805a0cf65141e4b4401ba4-20180322_164245263_p_cnf_320_1120.cnf"
         # "-i", "--input", type=str, default="my-examples/track-main-2018/3c92dedae9bea8c2c22acd655e33d52d-e_rphp065_05.cnf"
-        # "-i", "--input", type=str, default="my-examples/good-13-vars.cnf"
+        # "-i", "--input", type=str, default="my-examples/good-16-vars.cnf"
         # "-i", "--input", type=str, default="my-examples/bad-12-vars.cnf"
         # "-i", "--input", type=str, default="my-examples/test.cnf"
     )
