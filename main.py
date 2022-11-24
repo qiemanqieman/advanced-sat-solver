@@ -15,8 +15,8 @@ def parse_args():
                         default=
                         # "VSIDS"
                         # "ERWA"
-                        # "RSR"
-                        "LRB"
+                        "RSR"
+                        # "LRB"
                         )
     parser.add_argument("-i", "--input", type=str, help="specify the CNF file needed to be solved", default=
                         # "examples/and1.cnf"
