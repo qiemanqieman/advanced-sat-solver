@@ -21,7 +21,7 @@ which include VSIDS, LRB, DLIS, MOMS, and so on.
 ## Currently tested efficiency
 | File      | VSIDS  | LRB    |
 |-----------|--------|--------|
-| bcm-1.cnf | 20.99s | 17.92s |
-| bcm-2.cnf | 0.083s | 0.099s |
-| bcm-7.cnf | 0.173s | 0.210s |
+| bcm-1.cnf | 14.66s | 9.617s |
+| bcm-2.cnf | 0.075s | 0.082s |
+| bcm-7.cnf | 0.149s | 0.200s |
 

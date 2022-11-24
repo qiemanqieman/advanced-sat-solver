@@ -14,6 +14,7 @@ class CDCL:
         # assignment[0] is the list of literals, assignment[1] is the list of antecedents of corresponding literals
         self.assignment, self.decided_idxs = [[], []], []
         self.assigned = set()
+        self.assigned_idxs = {}
         if assignment_algorithm.lower() == 'lrb':
             self.heuristic = LRB(sentence, 0.4)
         elif assignment_algorithm.lower() == 'vsids':
@@ -56,6 +57,7 @@ class CDCL:
         """Assign a literal. maintain relevant data structure"""
         self.assignment[0].append(lit)
         self.assignment[1].append(ante)
+        self.assigned_idxs.update({lit: len(self.assigned)})
         self.assigned.add(lit)
         self.heuristic.on_assign(lit)
 
@@ -159,7 +161,8 @@ class CDCL:
 
     def _level_of(self, literal):
         """compute level of assigned literal"""
-        index = self.assignment[0].index(literal)
+        # index = self.assignment[0].index(literal)
+        index = self.assigned_idxs[literal]
         for i in range(len(self.decided_idxs)):
             if index < self.decided_idxs[i]:
                 return i
@@ -208,6 +211,7 @@ class CDCL:
         self.assignment[1] = self.assignment[1][:self.decided_idxs[level]]
         for literal in unassigned_literals:
             self.heuristic.on_unassign(literal)
+            self.assigned_idxs.pop(literal)
         self.assigned -= set(unassigned_literals)
         self.heuristic.rearrange(unassigned_literals)
         self.decided_idxs = self.decided_idxs[:level]
