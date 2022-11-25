@@ -1,8 +1,9 @@
-from heuristics import VSIDS, ERWA, RSR, LRB, CHB
+from heuristics import init_heuristic
 from AssignInfo import AssignInfo
 
 
 class CDCL:
+    """The conflict driven clause learning algorithm(`CDCL`) for `SAT` solver."""
     def __init__(self, sentence, num_vars, assignment_algorithm, alpha, discount, batch):
         """To simplify the use of data structures, `sentence` is a list of lists where each list
         is a clause. Each clause is a list of literals, where a literal is a signed integer.
@@ -13,49 +14,29 @@ class CDCL:
         self.num_vars = num_vars
         self.c2l_watch, self.l2c_watch = self._init_watch()
         self.ai = AssignInfo()
-        if assignment_algorithm.lower() == 'vsids':
-            self.heuristic = VSIDS(sentence, discount)
-        elif assignment_algorithm.lower() == 'erwa':
-            self.heuristic = ERWA(sentence, alpha)
-        elif assignment_algorithm.lower() == 'rsr':
-            self.heuristic = RSR(sentence, alpha)
-        elif assignment_algorithm.lower() == 'lrb':
-            self.heuristic = LRB(sentence, alpha, discount, batch)
-        elif assignment_algorithm.lower() == 'chb':
-            self.heuristic = CHB(sentence, alpha)
-        else:
-            raise ValueError('Unknown assignment algorithm: {}'.format(assignment_algorithm))
+        self.heuristic = init_heuristic(assignment_algorithm, sentence, alpha, discount, batch)
 
     def solve(self):
         """Run the `CDCL` solver for the `SAT` problem.
         This is the only interface for users.
         """
-        # Run BCP.
         if self._bcp(): return None  # indicate UNSAT
         self.heuristic.after_bcp(None)
 
-        # Main loop.
-        while len(self.ai.assigned) < self.num_vars:
+        while len(self.ai.assigned) < self.num_vars:  # Main loop.
             assigned_lit = self.heuristic.decide(self.ai.assigned)
-            # NOTE
             if assigned_lit is None:  # all variables are assigned(find an assignment), finish the loop
                 return self.ai.assignments
             self.ai.decided_idxs.append(len(self.ai.assigned))
             self._handle_assign(assigned_lit, None)
-            # Run BCP.
             conflict_ante = self._bcp()
-            while conflict_ante:
-                # Learn conflict.
+            while conflict_ante:  # conflict occurs, learn conflict.
                 backtrack_level, learnt_clause, conflict_side_literals = self._analyze_conflict(conflict_ante)
                 if backtrack_level < 0:  # conflict clause level is 0, UNSAT, finish the loop
                     return None
                 self._add_learned_clause(learnt_clause)
                 self.heuristic.after_conflict_analysis(learnt_clause, conflict_side_literals, self.sentence, self.ai)
-
-                # Backtrack.
                 self._backtrack(backtrack_level)
-
-                # Propagate watch.
                 conflict_ante = self._bcp(True)
                 self.heuristic.after_bcp(conflict_ante)
 
@@ -118,14 +99,18 @@ class CDCL:
             # if having any literal whose negation unassigned, adjust watching literals for this clause,
             # o.w., this clause is unit or conflict
             if literal not in self.c2l_watch[clause_idx] and -literal not in self.ai.assigned:
-                self.c2l_watch[clause_idx].remove(lit)
-                self.l2c_watch[lit].remove(clause_idx)
-                self.c2l_watch[clause_idx].append(literal)
-                self.l2c_watch[literal] = self.l2c_watch.get(literal, []) + [clause_idx]
+                self._change_watch_to(clause_idx, lit, literal)
                 is_unit_or_conflict = False
                 propagated = True
                 break
         return propagated, is_unit_or_conflict
+
+    def _change_watch_to(self, clause_idx, old_lit, new_lit):
+        """change watching literal from old_lit to new_lit on clause(sentence[clause_idx])"""
+        self.c2l_watch[clause_idx].remove(old_lit)
+        self.l2c_watch[old_lit].remove(clause_idx)
+        self.c2l_watch[clause_idx].append(new_lit)
+        self.l2c_watch[new_lit] = self.l2c_watch.get(new_lit, []) + [clause_idx]
 
     def _check_satisfied(self, l0, l1):
         """check if clause already sat or already has two validate literals watching"""
@@ -160,12 +145,7 @@ class CDCL:
         return None
 
     def _analyze_conflict(self, conflict_ante):
-        """
-        Analyze the conflict with first-UIP clause learning.
-        resolve conflict clause with its last assigned literal's ante-clause until only one literal having the highest
-        level in conflict clause
-        learned clause returned should be in decreasing order of the assignment, which means the latest assigned literal
-        is in the start. This will facilitate the later call of add_learned_clause(...)"""
+        """analyze conflict clause and return the learned clause"""
         return self.ai.analyse_conflict(self.sentence, conflict_ante)
 
     def _backtrack(self, level):

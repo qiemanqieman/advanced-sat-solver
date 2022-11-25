@@ -28,7 +28,7 @@ which include VSIDS, LRB, DLIS, MOMS, and so on.
 | File      | VSIDS  | ERMA   | RSR    | LRB    | CHB    |
 |-----------|--------|--------|--------|--------|--------|
 | bcm-1.cnf | 8.546s | 10.34s | 4.101s | 19.47s | 25.24s |
-| bcm-2.cnf | 0.089s | 0.085s | 0.127s | 0.093s | 0.085s |
+| bcm-2.cnf | 0.089s | 0.085s | 0.127s | 0.052s | 0.085s |
 | bcm-7.cnf | 0.260s | 0.210s | 0.215s | 0.214s | 0.332s |
 
 ## Further reading
