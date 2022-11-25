@@ -1,4 +1,4 @@
-from heuristics import VSIDS, ERWA, RSR, LRB
+from heuristics import VSIDS, ERWA, RSR, LRB, CHB
 from AssignInfo import AssignInfo
 
 
@@ -21,6 +21,8 @@ class CDCL:
             self.heuristic = RSR(sentence, alpha)
         elif assignment_algorithm.lower() == 'lrb':
             self.heuristic = LRB(sentence, alpha, discount, batch)
+        elif assignment_algorithm.lower() == 'chb':
+            self.heuristic = CHB(sentence, alpha)
         else:
             raise ValueError('Unknown assignment algorithm: {}'.format(assignment_algorithm))
 
@@ -30,6 +32,7 @@ class CDCL:
         """
         # Run BCP.
         if self._bcp(): return None  # indicate UNSAT
+        self.heuristic.after_bcp(None)
 
         # Main loop.
         while len(self.ai.assigned) < self.num_vars:
@@ -43,22 +46,24 @@ class CDCL:
             conflict_ante = self._bcp()
             while conflict_ante:
                 # Learn conflict.
-                backtrack_level, learned_clause, conflict_side_literals = self._analyze_conflict(conflict_ante)
+                backtrack_level, learnt_clause, conflict_side_literals = self._analyze_conflict(conflict_ante)
                 if backtrack_level < 0:  # conflict clause level is 0, UNSAT, finish the loop
                     return None
-                self._add_learned_clause(learned_clause)
-                self.heuristic.after_conflict_analysis(learned_clause, conflict_side_literals, self.sentence, self.ai)
+                self._add_learned_clause(learnt_clause)
+                self.heuristic.after_conflict_analysis(learnt_clause, conflict_side_literals, self.sentence, self.ai)
 
                 # Backtrack.
                 self._backtrack(backtrack_level)
 
                 # Propagate watch.
                 conflict_ante = self._bcp(True)
+                self.heuristic.after_bcp(conflict_ante)
 
         return self.ai.assignments  # indicate SAT
 
-    def _handle_assign(self, lit, ante):
-        """Assign a literal. maintain relevant data structure"""
+    def _handle_assign(self, lit, ante=None):
+        """Assign a literal. maintain relevant data structure
+        """
         self.ai.on_assign(lit, ante)
         self.heuristic.on_assign(lit)
 
@@ -169,7 +174,7 @@ class CDCL:
         unassigned_lits = self.ai.backtrack(level)
         for lit in unassigned_lits:
             self.heuristic.on_unassign(lit)
-        self.heuristic.rearrange(unassigned_lits)
+        self.heuristic.update_weights(unassigned_lits)
 
     def _add_learned_clause(self, learned_clause):
         """Add learned clause to the sentence and update watch.
@@ -177,8 +182,10 @@ class CDCL:
         is the only one satisfiable. This can promise least check of this clause for later rerun `bcp(...)` """
         i = len(self.sentence)
         self.sentence.append(learned_clause)
-        self.c2l_watch[i] = [self.sentence[i][0]]
-        self.l2c_watch.update({self.sentence[i][0]: self.l2c_watch.get(self.sentence[i][0], []) + [i]})
-        if len(self.sentence[i]) > 1:
-            self.c2l_watch[i].append(self.sentence[i][1])
-            self.l2c_watch.update({self.sentence[i][1]: self.l2c_watch.get(self.sentence[i][1], []) + [i]})
+        lit = learned_clause[0]
+        self.c2l_watch[i] = [lit]
+        self.l2c_watch.update({lit: self.l2c_watch.get(lit, []) + [i]})
+        if len(learned_clause) > 1:
+            lit = learned_clause[1]
+            self.c2l_watch[i].append(lit)
+            self.l2c_watch.update({lit: self.l2c_watch.get(lit, []) + [i]})

@@ -28,7 +28,8 @@ class RSR(ERWA):
             self.reasoned_in[lit] += 1
 
     def on_assign(self, literal):
-        """Called when a literal is assigned or propagated."""
+        """Called when a literal is assigned or propagated.
+        """
         super().on_assign(literal)
         self.reasoned_in[literal] = 0
 
@@ -38,5 +39,5 @@ class RSR(ERWA):
         if interval > 0:
             reward = float(self.participated_in[literal]) / interval
             rsr = float(self.reasoned_in[literal]) / interval
-            self.ema[literal] = self.alpha * (reward + rsr) + (1 - self.alpha) * self.ema[literal]
+            self.weights[literal] = self.alpha * (reward + rsr) + (1 - self.alpha) * self.weights[literal]
 
