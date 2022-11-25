@@ -5,9 +5,21 @@ from .RSR import RSR
 from .CHB import CHB
 
 __all__ = {
-    "VSIDS",
-    "ERWA",
-    "RSR",
-    "LRB",
-    "CHB"
+    "init_heuristic",
 }
+
+
+def init_heuristic(assignment_algorithm, sentence, alpha, discount, batch):
+    """Initialize the heuristic."""
+    if assignment_algorithm.lower() == 'vsids':
+        return VSIDS(sentence, discount)
+    elif assignment_algorithm.lower() == 'erwa':
+        return ERWA(sentence, alpha)
+    elif assignment_algorithm.lower() == 'rsr':
+        return RSR(sentence, alpha)
+    elif assignment_algorithm.lower() == 'lrb':
+        return LRB(sentence, alpha, discount, batch)
+    elif assignment_algorithm.lower() == 'chb':
+        return CHB(sentence, alpha)
+    else:
+        raise ValueError('Unknown assignment algorithm: {}'.format(assignment_algorithm))

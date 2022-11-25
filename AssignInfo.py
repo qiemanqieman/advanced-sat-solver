@@ -16,6 +16,11 @@ class AssignInfo:
         self.assigned.add(lit)
 
     def analyse_conflict(self, sentence, conflict_ante):
+        """Analyze the conflict with first-UIP clause learning.
+        Resolve conflict clause with its last assigned literal's ante-clause until only one literal having the highest
+        level in conflict clause.
+        Learned clause returned should be in decreasing order of the assignment, which means the latest assigned literal
+        is in the head. This will facilitate the later call of add_learned_clause(...)"""
         backtrack_level, learned_clause, conflict_side_literals = None, [], []
         if self._conflict_clause_level_is_0(conflict_ante):
             return -1, learned_clause, conflict_side_literals

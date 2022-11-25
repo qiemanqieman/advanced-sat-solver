@@ -13,11 +13,11 @@ def parse_args():
     parser.add_argument("-a", "--assignment-alogrithm", type=str, choices=["VSIDS", "ERWA", "RSR", "LRB"],
                         help="Case-sensitive, heuristic branching algorithm for assigning next literal",
                         default=
-                        # "VSIDS"
+                        "VSIDS"
                         # "ERWA"
                         # "RSR"
                         # "LRB"
-                        "CHB"
+                        # "CHB"
                         )
     parser.add_argument("-i", "--input", type=str, help="specify the CNF file needed to be solved", default=
                         # "examples/and1.cnf"
