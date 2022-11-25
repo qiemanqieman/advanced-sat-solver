@@ -21,7 +21,7 @@ class LRB(RSR):
             self._reorder()
 
     def _reorder(self):
-        for lit in self.ema:
-            self.ema[lit] = self.ema[lit] * self.discount ** (self.batch - self.recorder.get(lit, 0))
-        self.ema = dict(sorted(self.ema.items(), key=lambda i: i[1]))
+        for lit in self.weights:
+            self.weights[lit] = self.weights[lit] * self.discount ** (self.batch - self.recorder.get(lit, 0))
+        self.ema = dict(sorted(self.weights.items(), key=lambda i: i[1]))
         self.recorder = {}
