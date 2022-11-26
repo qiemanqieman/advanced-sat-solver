@@ -34,8 +34,8 @@ class AssignInfo:
             conflict_ante = self._resolve(conflict_ante, sentence[ass[-highest_level_literals[0]]])
             highest_level_literals = [-literal for literal in ass if -literal in conflict_ante]
         if len(highest_level_literals) == 1:
-            learned_clause = sorted(conflict_ante, key=lambda key: self._level_of(-key), reverse=True)
-            backtrack_level = 0 if len(learned_clause) == 1 else self._level_of(-learned_clause[1])
+            learned_clause = sorted(conflict_ante, key=lambda key: self.level(-key), reverse=True)
+            backtrack_level = 0 if len(learned_clause) == 1 else self.level(-learned_clause[1])
         return backtrack_level, learned_clause, conflict_side_literals
 
     def backtrack(self, level):
@@ -49,22 +49,29 @@ class AssignInfo:
         self.decided_idxs = self.decided_idxs[:level]
         return unassigned_literals
 
-    def _resolve(self, clause1, clause2):
-        """resolve two clause, one is conflict clause, another is unit clause, the result is conflict clause"""
-        clause1.update(clause2)
-        clause = set([l for l in clause1 if -l not in clause1])
-        return clause
-
-    def _level_of(self, literal):
-        """compute level of assigned literal"""
+    def level(self, literal):
+        """compute level of an assigned literal"""
         index = self.assigned_idxs[literal]
         for i in range(len(self.decided_idxs)):
             if index < self.decided_idxs[i]:
                 return i
         return len(self.decided_idxs)
 
+    def clear(self):
+        self.assignments = []
+        self.antes = []
+        self.decided_idxs = []
+        self.assigned = set()
+        self.assigned_idxs = {}
+
+    def _resolve(self, clause1, clause2):
+        """resolve two clause, one is conflict clause, another is unit clause, the result is conflict clause"""
+        clause1.update(clause2)
+        clause = set([l for l in clause1 if -l not in clause1])
+        return clause
+
     def _conflict_clause_level_is_0(self, clause):
         """compute the level of a conflict clause --- the highest level of all literals' negations in clause"""
-        return all([self._level_of(-literal) == 0 for literal in clause])
+        return all([self.level(-literal) == 0 for literal in clause])
 
 
