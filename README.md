@@ -8,7 +8,8 @@ which include VSIDS, LRB, DLIS, MOMS, and so on.
 
 ## Usage
 ```python main.py [-h] [-a {VSIDS,ERMA,RSR,LRB}] [-i INPUT] [-discount D] [-alpha A] [-batch B]``` \
-`python main.py -h` for more details.
+`python main.py` to run the solver with default settings. \
+`python main.py -h` for more details. 
 
 ### Arguments
 ``` 
@@ -37,7 +38,7 @@ which include VSIDS, LRB, DLIS, MOMS, and so on.
 | good-16-vars.cnf          | 3.259s | 2.934s | 3.012s | 3.067s | 2.970s |
 | bad-12-vars.cnf (`UNSAT`) | 3.866s | 2.704s | 3.558s | 2.991s | 1.507s |
 
-with restart(MLR)
+### with restart(MLR)
 
 | File                      | VSIDS  | ERMA   | RSR    | LRB    | CHB    |
 |---------------------------|--------|--------|--------|--------|--------|

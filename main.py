@@ -13,7 +13,7 @@ def parse_args():
                         help="step-size coefficient for algorithms based on ERMA, default 0.4")
     parser.add_argument("-batch", type=int, metavar="A", default=10,
                         help="batch parameter used in LRB algorithm, default 10")
-    parser.add_argument("-a", "--assignment-alogrithm", type=str, choices=["VSIDS", "ERWA", "RSR", "LRB"],
+    parser.add_argument("-a", "--assignment-algorithm", type=str, choices=["VSIDS", "ERWA", "RSR", "LRB"],
                         help="Case-sensitive, heuristic branching algorithm for assigning next literal, default VSIDS",
                         default=
                         # "VSIDS"
@@ -50,7 +50,7 @@ def main(args):
         sentence, num_vars = read_cnf(f)
 
     # Create CDCL solver and solve it!
-    cdcl = CDCL(sentence, num_vars, args.assignment_alogrithm, args.alpha, args.discount, args.batch, args.restart_policy)
+    cdcl = CDCL(sentence, num_vars, args.assignment_algorithm, args.alpha, args.discount, args.batch, args.restart_policy)
     start = time.time()  # compute time
     res = cdcl.solve()
     if res is None:
