@@ -58,5 +58,5 @@ Full paper can be read [online ](https://link.springer.com/chapter/10.1007/978-3
 ### CHB
 Full paper can be downloaded from [here](https://dl.acm.org/doi/10.5555/3016100.3016385)
 
-### MLR(mached learning-based restart)
+### MLR(machine learning-based restart)
 Full paper can be read [online](https://link.springer.com/chapter/10.1007/978-3-319-94144-8_6)
