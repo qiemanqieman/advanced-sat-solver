@@ -1,10 +1,10 @@
 # <center>advanced-sat-solver</center>
 ## Description
 A pure-python implemented SAT solver using CDCL equipped with several techniques, 
-which include VSIDS, LRB, DLIS, MOMS, and so on.
+including VSIDS, LRB, CHB, MLR and so on.
 
 ## Tested Environment
-- Python 3.10.0
+- Python 3.10
 
 ## Usage
 ```python main.py [-h] [-a {VSIDS,ERMA,RSR,LRB}] [-i INPUT] [-discount D] [-alpha A] [-batch B]``` \

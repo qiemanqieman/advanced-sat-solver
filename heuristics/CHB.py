@@ -15,10 +15,7 @@ class CHB(Heuristic):
                 self.last_conflict[literal] = 0
 
     def after_bcp(self, conflict_ante):
-        if conflict_ante:
-            multiplier = 1.0
-        else:
-            multiplier = 0.9
+        multiplier = 1.0 if conflict_ante else 0.9
         for lit in self.plays:
             reward = multiplier / (self.num_conflicts - self.last_conflict[lit] + 1)
             self.weights[lit] = (1 - self.alpha) * self.weights[lit] + self.alpha * reward

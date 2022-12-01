@@ -7,7 +7,7 @@ class MLR:
     def __init__(self):
         self.α, self.ε, self.β1, self.β2 = 0.001, 1e-8, 0.9, 0.999
         self.conflicts, self.conflicts_since_last_restart = 0, 0
-        self.t, self.mu, self.m2 = 0, 0, 0
+        self.t, self.μ, self.m2 = 0, 0, 0
         self.prev_lbd1, self.prev_lbd2, self.prev_lbd3 = 0, 0, 0
         self.θ, self.m, self.v = np.zeros(7), np.zeros(7), np.zeros(7)
 
@@ -19,9 +19,9 @@ class MLR:
         self.conflicts += 1
         self.conflicts_since_last_restart += 1
         next_lbd = self._lbd(learnt_clause_literals, assign_info)
-        δ = next_lbd - self.mu
-        self.mu += δ / self.conflicts  # TODO: is this right?
-        Δ = next_lbd - self.mu
+        δ = next_lbd - self.μ
+        self.μ += δ / self.conflicts
+        Δ = next_lbd - self.μ
         self.m2 += Δ * δ
         if self.conflicts > 3:
             self.t += 1
@@ -43,7 +43,7 @@ class MLR:
         if not conflict_ante and self.conflicts > 3 and self.conflicts_since_last_restart > 0:
             sigma = (self.m2 / (self.conflicts - 1)) ** 0.5
             features = self._feature_vec()
-            if np.dot(self.θ, features) > self.mu + 3.08 * sigma:
+            if np.dot(self.θ, features) > self.μ + 3.08 * sigma:
                 self.conflicts_since_last_restart = 0
                 need_restart = True
         return need_restart
