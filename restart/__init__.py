@@ -8,7 +8,7 @@ __all__ = {
 
 def init_restart_policy(restart_policy):
     """Initialize the heuristic."""
-    if restart_policy is None:
+    if restart_policy is None or restart_policy == "None":
         return None
     elif restart_policy.lower() == 'mlr':
         return MLR()
