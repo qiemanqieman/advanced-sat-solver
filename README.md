@@ -8,8 +8,9 @@ including VSIDS, LRB, CHB, MLR and so on.
 
 ## Usage
 ```python main.py [-h] [-a {VSIDS,ERMA,RSR,LRB}] [-i INPUT] [-discount D] [-alpha A] [-batch B]``` \
-`python main.py` to run the solver with default settings. \
-`python main.py -h` for more details. 
+`python main.py` to run the solver with default settings.`python main.py -h` for more details. \
+`python GUI.py` to run with GUI.\
+`python test.py` to generate test results.
 
 ### Arguments
 ``` 
