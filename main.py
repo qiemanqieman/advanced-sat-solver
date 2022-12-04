@@ -28,10 +28,10 @@ def parse_args():
                         # "examples/and1.cnf"
                         # "examples/and2.cnf"
                         # "examples/bmc-2.cnf"
-                        # "examples/bmc-7.cnf"
+                        "examples/bmc-7.cnf"
                         # "my-examples/good-16-vars.cnf"
                         # "my-examples/bad-12-vars.cnf"
-                        "examples/bmc-1.cnf"
+                        # "examples/bmc-1.cnf"
                         # "my-examples/test.cnf"
                         # "my-examples/track-main-2018/2d5cc23d8d805a0cf65141e4b4401ba4-20180322_164245263_p_cnf_320_1120.cnf"
                         # "my-examples/track-main-2018/3c92dedae9bea8c2c22acd655e33d52d-e_rphp065_05.cnf"
@@ -54,6 +54,7 @@ def main(args):
     # Create problem.
     with open(args.input, "r") as f:
         sentence, num_vars = read_cnf(f)
+    origin_sentence = list(sentence)
 
     preprocessor = init_preprocess_policy(args.preprocess_policy, sentence, num_vars)
     if preprocessor is not None:
@@ -76,14 +77,14 @@ def main(args):
         print("✘ No solution found")
     else:
         if preprocessor is not None:
-            res = after_assignment(removed_clause, res)
+            res = after_assignment(num_vars, removed_clause, res)
             print(old_length, new_length)
         print(f"✔ Successfully found a solution: {res}")
 
     print(end - start, "seconds elapsed")
     if res is not None:
-        print("The solution is verified to be", verify(sentence, res))
-        check(res, num_vars, sentence)
+        print("The solution is verified to be", verify(origin_sentence, res))
+        check(res, num_vars, origin_sentence)
 
 
 if __name__ == "__main__":

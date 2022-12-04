@@ -18,7 +18,11 @@ def init_preprocess_policy(preprocess_policy, sentence, num_vars):
         raise ValueError('Unknown preprocess policy: {}'.format(preprocess_policy))
 
 
-def after_assignment(removed_clause, res):
+def after_assignment(num_vars, removed_clause, res):
+    for i in range(1, num_vars+1):
+        if i not in res and -i not in res:
+            res.append(i)
+
     while len(removed_clause) != 0:
         lit, clause_list = removed_clause.pop()
         for clause in clause_list:

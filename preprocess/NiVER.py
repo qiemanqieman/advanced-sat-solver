@@ -1,21 +1,16 @@
-import numpy as np
 
 
 class NiVER:
-    """Machine Learning-based Restart algorithm"""
+    """Preprocess based on Non Increasing VER (NiVER)"""
 
     def __init__(self, sentence, num_vars):
-        """To simplify the use of data structures, `sentence` is a list of lists where each list
-        is a clause. Each clause is a list of literals, where a literal is a signed integer.
-        `assignment` is also a list of literals in the order of their assignment.
-        """
+
         self.sentence = sentence
         self.num_vars = num_vars
         self.l2c_all = self._init_watch()
         self.removed_clause = []
 
     def preprocess(self):
-        """Solve the CNF sentence, which is the only interface for users."""
         while True:
             entry = False
             for var in range(1, self.num_vars + 1):
