@@ -1,71 +1,84 @@
-
-
 class NiVER:
     """Preprocess based on Non Increasing VER (NiVER)"""
 
-    def __init__(self, sentence, num_vars):
+    def __init__(self, sentence, num_vars, flag):
 
         self.sentence = sentence
         self.num_vars = num_vars
-        self.l2c_all = self._init_watch()
-        self.removed_clause = []
+        self.l2c_all, self.num_lit = self._init_watch()
+        self.removed_clause = []    # clauses removed during preprocessing
+        self.flag = flag    # degree of preprocess
 
     def preprocess(self):
+        """The main part for preprocess with NiVER algorithm."""
         while True:
             entry = False
             for var in range(1, self.num_vars + 1):
-                if var % 100 == 0:
-                    print(var)
                 if len(self.l2c_all[var]) == 0 or len(self.l2c_all[-var]) == 0:
                     continue
                 R_clause_set = []
-                old_num_lit, new_num_lit = 0, 0
-                for N_clause in self.l2c_all[-var]:
-                    old_num_lit += len(N_clause)
+                new_num_lit = 0
+                old_num_lit = self.num_lit[var] + self.num_lit[-var]
                 for P in self.l2c_all[var]:
-                    old_num_lit += len(P)
                     for N in self.l2c_all[-var]:
-                        P_clause = list(P)
-                        N_clause = list(N)
-                        P_clause.remove(var)
-                        N_clause.remove(-var)
-                        new_clause = list(set(P_clause + N_clause))
-                        if len(new_clause) == 0:
+                        resolvent = self.learn_resolvent(list(P), list(N), var)
+                        if len(resolvent) == 0:
                             return None, None
-                        flag = True
-                        for lit in new_clause:
-                            if -lit in new_clause:
-                                flag = False
+                        if not self.judge_tautology(resolvent) and resolvent not in self.sentence:
+                            new_num_lit += len(resolvent)
+                            R_clause_set.append(resolvent)
+                            if new_num_lit > old_num_lit:
                                 break
-                        if flag and new_clause not in self.sentence:
-                            new_num_lit += len(new_clause)
-                            R_clause_set.append(new_clause)
+                    if new_num_lit > old_num_lit:
+                        break
+
                 if old_num_lit >= new_num_lit:
                     self.removed_clause.append((var, self.l2c_all[var] + self.l2c_all[-var]))
-                    self.remove_clause(var)
-                    self.remove_clause(-var)
+                    self.remove_c(var)
+                    self.remove_c(-var)
                     for clause in R_clause_set:
                         self.sentence.append(clause)
                         for lit in clause:
                             self.l2c_all[lit].append(clause)
-                    entry = True
-                # print(sentence)
+                            self.num_lit[lit] += len(clause)
+                    if self.flag:
+                        entry = True
             if not entry:
                 break
         return self.sentence, self.removed_clause
 
     def _init_watch(self):
-        l2c_all = {}
+        """Initialize the l2c_all and num_lit."""
+        l2c_all = {}    # literal -> clause
+        num_lit = []    # literal -> number of literals
         for i in range(-self.num_vars, self.num_vars + 1):
             l2c_all[i] = []
+            num_lit.append(0)
         for clause in self.sentence:
             for lit in clause:
                 l2c_all[lit].append(clause)
-        return l2c_all
+                num_lit[lit] += len(clause)
+        return l2c_all, num_lit
 
-    def remove_clause(self, var):
+    def learn_resolvent(self, P_clause, N_clause, var):
+        """Eliminate the Variable numbered var, and return the resolvent."""
+        P_clause.remove(var)
+        N_clause.remove(-var)
+        resolvent = list(set(P_clause + N_clause))
+        return resolvent
+
+    def judge_tautology(self, clause):
+        """Determine whether a sentence is a tautology."""
+        for lit in clause:
+            if -lit in clause:
+                return True
+        return False
+
+    def remove_c(self, var):
+        """Remove clauses with literal var from sentence."""
         tmp_list = list(self.l2c_all[var])
         for clause in tmp_list:
             self.sentence.remove(clause)
             for lit in clause:
                 self.l2c_all[lit].remove(clause)
+                self.num_lit[lit] -= len(clause)

@@ -2,7 +2,7 @@ import time
 import argparse
 
 from CDCL import CDCL
-from utils import read_cnf, verify, check
+from utils import read_cnf, verify
 from preprocess import init_preprocess_policy, after_assignment
 
 
@@ -28,10 +28,10 @@ def parse_args():
                         # "examples/and1.cnf"
                         # "examples/and2.cnf"
                         # "examples/bmc-2.cnf"
-                        "examples/bmc-7.cnf"
+                        # "examples/bmc-7.cnf"
                         # "my-examples/good-16-vars.cnf"
                         # "my-examples/bad-12-vars.cnf"
-                        # "examples/bmc-1.cnf"
+                        "examples/bmc-1.cnf"
                         # "my-examples/test.cnf"
                         # "my-examples/track-main-2018/2d5cc23d8d805a0cf65141e4b4401ba4-20180322_164245263_p_cnf_320_1120.cnf"
                         # "my-examples/track-main-2018/3c92dedae9bea8c2c22acd655e33d52d-e_rphp065_05.cnf"
@@ -41,10 +41,11 @@ def parse_args():
                         # None
                         "MLR"
                         )
-    parser.add_argument("-p", "--preprocess-policy", type=str, choices=["NiVER"],
+    parser.add_argument("-p", "--preprocess-policy", type=str, choices=["NiVER", "lighter-NiVER"],
                         help="specify the preprocess policy, default to be None, default None", default=
                         # None
-                        "NiVER"
+                        # "NiVER"
+                        "lighter-NiVER"
                         )
 
     return parser.parse_args()
@@ -56,14 +57,12 @@ def main(args):
         sentence, num_vars = read_cnf(f)
     origin_sentence = list(sentence)
 
+    # Create a preprocessor and preprocess the sentence.
     preprocessor = init_preprocess_policy(args.preprocess_policy, sentence, num_vars)
     if preprocessor is not None:
-        old_length = len(sentence)
         start1 = time.time()
         sentence, removed_clause = preprocessor.preprocess()
         end1 = time.time()
-        print(end1 - start1, "seconds for preprocess")
-        new_length = len(sentence)
         if removed_clause is None:
             print("✘ No solution found")
             return
@@ -78,14 +77,12 @@ def main(args):
     else:
         if preprocessor is not None:
             res = after_assignment(num_vars, removed_clause, res)
-            print(old_length, new_length)
         print(f"✔ Successfully found a solution: {res}")
-
+    if preprocessor is not None:
+        print(end1 - start1, "seconds for preprocess")
     print(end - start, "seconds elapsed")
     if res is not None:
         print("The solution is verified to be", verify(origin_sentence, res))
-        check(res, num_vars, origin_sentence)
-
 
 if __name__ == "__main__":
     args = parse_args()

@@ -12,13 +12,15 @@ def init_preprocess_policy(preprocess_policy, sentence, num_vars):
     if preprocess_policy is None or preprocess_policy == "None":
         return None
     elif preprocess_policy.lower() == 'niver':
-        return NiVER(sentence, num_vars)
-
+        return NiVER(sentence, num_vars, True)
+    elif preprocess_policy.lower() == 'lighter-niver':
+        return NiVER(sentence, num_vars, False)
     else:
         raise ValueError('Unknown preprocess policy: {}'.format(preprocess_policy))
 
 
 def after_assignment(num_vars, removed_clause, res):
+    """Assign values to elements eliminated during preprocessing after assignment."""
     for i in range(1, num_vars+1):
         if i not in res and -i not in res:
             res.append(i)
