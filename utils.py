@@ -28,22 +28,3 @@ def verify(sentence, solution):
 
     return all([clause_is_true(clause) for clause in sentence])
 
-
-def check(res, num_vars, sentence):
-    # assert len(res) == num_vars
-    import numpy as np
-    abs_res = [abs(literal) for literal in res]
-    cnt = np.zeros(num_vars+1)
-    cnt[0] = 1
-    for var in abs_res:
-        cnt[var] += 1
-    for i in range(len(cnt)):
-        if cnt[i] > 1:
-            print("wrong", i, cnt[i])
-            return False
-    for clause in sentence:
-        if not any(literal in res for literal in clause):
-            print("error", clause)
-            return False
-    print("pass check!")
-    return True

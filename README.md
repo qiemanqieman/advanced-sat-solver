@@ -48,6 +48,17 @@ including VSIDS, LRB, CHB, MLR and so on.
 | bcm-7.cnf                 | 0.253s | 0.212s | 0.247s | 0.221s | 1.570s |
 | good-16-vars.cnf          | 2.397s | 2.493s | 2.432s | 2.536s | 2.582s |
 | bad-12-vars.cnf (`UNSAT`) | 3.182s | 3.412s | 3.367s | 3.385s | 2.496s |
+
+### preprocess(NiVER)
+(VSIDS + MLR)
+
+| File                      | with lighter-NiVER         | without preprocess|
+|---------------------------|----------------------------|-------------------|
+| bcm-1.cnf                 | 63.69s(pre) + 17.99s(cdcl) | 89.68s            |
+| bcm-2.cnf                 | 2.26s + 0.11s              | 0.15s             | 
+| bcm-7.cnf                 | 35.69s + 0.049s            | 0.39s             |
+| bad-12-vars.cnf (`UNSAT`) | 9.11s(pre)                 | 4.70s             |
+
 ## Further reading
 Some links for the details of all kinds of algorithm used
 in this project
@@ -59,5 +70,8 @@ Full paper can be read [online ](https://link.springer.com/chapter/10.1007/978-3
 ### CHB
 Full paper can be downloaded from [here](https://dl.acm.org/doi/10.5555/3016100.3016385)
 
-### MLR(machine learning-based restart)
+### MLR (machine learning-based restart)
 Full paper can be read [online](https://link.springer.com/chapter/10.1007/978-3-319-94144-8_6)
+
+### NiVER (Non Increasing Variable Elimination Resolution)
+Full paper can be downloaded from [here](http://www.satisfiability.org/SAT04/programme/118.pdf)
