@@ -24,7 +24,7 @@ class NiVER:
                         resolvent = self.learn_resolvent(list(P), list(N), var)
                         if len(resolvent) == 0:
                             return None, None
-                        if not self.judge_tautology(resolvent) and resolvent not in self.sentence:
+                        if not self.judge_tautology(resolvent) and not self.judge_exist(resolvent):
                             new_num_lit += len(resolvent)
                             R_clause_set.append(resolvent)
                             if new_num_lit > old_num_lit:
@@ -54,7 +54,7 @@ class NiVER:
         for i in range(-self.num_vars, self.num_vars + 1):
             l2c_all[i] = []
             num_lit.append(0)
-        for clause in self.sentence:
+        for idx, clause in enumerate(self.sentence):
             for lit in clause:
                 l2c_all[lit].append(clause)
                 num_lit[lit] += len(clause)
@@ -68,14 +68,26 @@ class NiVER:
         return resolvent
 
     def judge_tautology(self, clause):
-        """Determine whether a sentence is a tautology."""
+        """Determine whether a clause is a tautology."""
         for lit in clause:
             if -lit in clause:
                 return True
         return False
 
+    def judge_exist(self, clause):
+        """Determine whether a clause has already existed in sentence."""
+        existed_clause = []
+        for lit in clause:
+            for c in self.l2c_all[lit]:
+                existed_clause.append(set(c))
+        if set(clause) in existed_clause:
+            return True
+        else:
+            return False
+
+
     def remove_c(self, var):
-        """Remove clauses with literal var from sentence."""
+        """Remove clauses including literal var from sentence."""
         tmp_list = list(self.l2c_all[var])
         for clause in tmp_list:
             self.sentence.remove(clause)
