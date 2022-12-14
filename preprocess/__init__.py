@@ -19,11 +19,12 @@ def init_preprocess_policy(preprocess_policy, sentence, num_vars):
         raise ValueError('Unknown preprocess policy: {}'.format(preprocess_policy))
 
 
-def after_assignment(num_vars, removed_clause, res):
+def after_assignment(num_vars, removed_clause, result):
     """Assign values to elements eliminated during preprocessing after assignment."""
+    res = set(result)
     for i in range(1, num_vars+1):
         if i not in res and -i not in res:
-            res.append(i)
+            res.add(i)
 
     while len(removed_clause) != 0:
         lit, clause_list = removed_clause.pop()
@@ -40,6 +41,6 @@ def after_assignment(num_vars, removed_clause, res):
                             res.remove(lit)
                         elif -lit in res:
                             res.remove(-lit)
-                        res.append(l)
+                        res.add(l)
                         break
-    return res
+    return list(res)
