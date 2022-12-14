@@ -54,10 +54,9 @@ including VSIDS, LRB, CHB, MLR and so on.
 
 | File                      | with lighter-NiVER         | without preprocess|
 |---------------------------|----------------------------|-------------------|
-| bcm-1.cnf                 | 63.69s(pre) + 17.99s(cdcl) | 89.68s            |
-| bcm-2.cnf                 | 2.26s + 0.11s              | 0.15s             | 
-| bcm-7.cnf                 | 35.69s + 0.049s            | 0.39s             |
-| bad-12-vars.cnf (`UNSAT`) | 9.11s(pre)                 | 4.70s             |
+| bcm-1.cnf                 | 6.43s(pre) + 19.93s(cdcl)  | 115.86s           |
+| bcm-2.cnf                 | 0.73s + 0.12s              | 0.167s            | 
+| bcm-7.cnf                 | 3.08s + 0.055s             | 0.49s             |
 
 ## Further reading
 Some links for the details of all kinds of algorithm used
