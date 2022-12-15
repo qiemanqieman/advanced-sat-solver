@@ -1,12 +1,13 @@
 from heuristics import init_heuristic
 from restart import init_restart_policy
+from bandit import init_bandit
 from AssignInfo import AssignInfo
 
 
 class CDCL:
     """The conflict driven clause learning algorithm(`CDCL`) for `SAT` solver."""
 
-    def __init__(self, sentence, num_vars, assignment_algorithm, alpha, discount, batch, rp):
+    def __init__(self, sentence, num_vars, assignment_algorithm, alpha, discount, batch, rp, bandit):
         """To simplify the use of data structures, `sentence` is a list of lists where each list
         is a clause. Each clause is a list of literals, where a literal is a signed integer.
         `assignment` is also a list of literals in the order of their assignment.
@@ -15,7 +16,13 @@ class CDCL:
         self.num_vars = num_vars
         self.c2l_watch, self.l2c_watch = self._init_watch()
         self.ai = AssignInfo()  # assignment information
-        self.heuristic = init_heuristic(assignment_algorithm, sentence, alpha, discount, batch)  # heuristic algorithm
+        self.bandit = init_bandit(sentence, alpha, discount, batch, bandit)
+        self.assignment_algorithm = assignment_algorithm
+        if self.bandit is None:
+            self.heuristic = init_heuristic(assignment_algorithm, sentence, alpha, discount,
+                                            batch)  # heuristic algorithm
+        else:
+            self.heuristic = self.bandit.Heuristics[0]
         self.rp = init_restart_policy(rp)  # restart policy
 
     def solve(self):
@@ -23,7 +30,8 @@ class CDCL:
         solution = self._calculate()
         while solution == 'restart':  # only when specified restart policy, may solution be 'restart'
             solution = self._restart()
-        else: return solution
+        else:
+            return solution
 
     def _calculate(self):
         """The main calculation part for CDCL algorithm."""
@@ -33,6 +41,7 @@ class CDCL:
         if need_restart: return 'restart'
         while len(self.ai.assigned) < self.num_vars:  # Main loop.
             assigned_lit = self.heuristic.decide(self.ai.assigned)
+            self.ai.num_decisions += 1  # count the number of decisions
             if not assigned_lit: return self.ai.assignments  # all assigned(found a solution), return solution
             self._handle_assign(assigned_lit, None, True)
             conflict_ante = self._bcp()
@@ -50,6 +59,8 @@ class CDCL:
 
     def _restart(self):
         """Restart the solver"""
+        if self.bandit is not None:
+            self.heuristic = self.bandit.change_heuristic(self.ai)
         self.ai.clear()
         self.c2l_watch, self.l2c_watch = self._init_watch()
         return self._calculate()

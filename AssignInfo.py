@@ -8,6 +8,7 @@ class AssignInfo:
         self.decided_idxs = []
         self.assigned = set()
         self.assigned_idxs = {}
+        self.num_decisions = 0
 
     def on_assign(self, lit, ante):
         self.assignments.append(lit)
@@ -63,6 +64,7 @@ class AssignInfo:
         self.decided_idxs = []
         self.assigned = set()
         self.assigned_idxs = {}
+        self.num_decisions = 0
 
     def _resolve(self, clause1, clause2):
         """resolve two clause, one is conflict clause, another is unit clause, the result is conflict clause"""

@@ -14,10 +14,10 @@ def parse_args():
                         help="step-size coefficient for algorithms based on ERMA, default 0.4")
     parser.add_argument("-batch", type=int, metavar="A", default=10,
                         help="batch parameter used in LRB algorithm, default 10")
-    parser.add_argument("-a", "--assignment-algorithm", type=str, choices=["VSIDS", "ERWA", "RSR", "LRB"],
+    parser.add_argument("-a", "--assignment-algorithm", type=str, choices=["VSIDS", "ERWA", "RSR", "LRB", "UCB"],
                         help="Case-sensitive, heuristic branching algorithm for assigning next literal, default VSIDS",
                         default=
-                         "VSIDS"
+                        "ERWA"
                         # "ERWA"
                         # "RSR"
                         # "LRB"
@@ -43,9 +43,13 @@ def parse_args():
                         )
     parser.add_argument("-p", "--preprocess-policy", type=str, choices=["NiVER", "lighter-NiVER"],
                         help="specify the preprocess policy, default to be None, default None", default=
-                        # None
+                        None
                         # "NiVER"
-                        "lighter-NiVER"
+                        # "lighter-NiVER"
+                        )
+    parser.add_argument("-b", "--bandit", type=str, choices=["UCB"],
+                        help="specify the heuristic changing policy", default=
+                        "UCB"
                         )
 
     return parser.parse_args()
@@ -68,7 +72,8 @@ def main(args):
             return
 
     # Create CDCL solver and solve it!
-    cdcl = CDCL(sentence, num_vars, args.assignment_algorithm, args.alpha, args.discount, args.batch, args.restart_policy)
+    cdcl = CDCL(sentence, num_vars, args.assignment_algorithm, args.alpha, args.discount, args.batch,
+                args.restart_policy, args.bandit)
     start = time.time()  # compute time
     res = cdcl.solve()
     end = time.time()
