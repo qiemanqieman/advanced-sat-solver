@@ -15,6 +15,8 @@ def init_preprocess_policy(preprocess_policy, sentence, num_vars):
         return NiVER(sentence, num_vars, True)
     elif preprocess_policy.lower() == 'lighter-niver':
         return NiVER(sentence, num_vars, False)
+    elif preprocess_policy.lower() == 'li-niver-withple':
+        return NiVER(sentence, num_vars, False, True)
     else:
         raise ValueError('Unknown preprocess policy: {}'.format(preprocess_policy))
 
