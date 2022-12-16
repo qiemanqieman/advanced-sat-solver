@@ -1,16 +1,19 @@
 class NiVER:
     """Preprocess based on Non Increasing VER (NiVER)"""
 
-    def __init__(self, sentence, num_vars, flag):
+    def __init__(self, sentence, num_vars, flag, ple=False):
 
         self.sentence = sentence
         self.num_vars = num_vars
         self.l2c_all, self.num_lit, self.valid_clause_index = self._init_watch()
         self.removed_clause = []    # clauses removed during preprocessing
         self.flag = flag    # degree of preprocess
+        self.ple = ple  # pure literal eliminate or not
 
     def preprocess(self):
         """The main part for preprocess with NiVER algorithm."""
+        if self.ple:
+            self.pure_literal_elimination()
         while True:
             entry = False
             for var in range(1, self.num_vars + 1):
@@ -48,7 +51,19 @@ class NiVER:
                         entry = True
             if not entry:
                 break
+        if self.ple:
+            self.pure_literal_elimination()
         return self.valid_sentence(), self.removed_clause
+
+    def pure_literal_elimination(self):
+        """Eliminate pure literals."""
+        for var in range(1, self.num_vars + 1):
+            if len(self.l2c_all[var]) == 0 and len(self.l2c_all[-var]) != 0:
+                self.removed_clause.append((var, self.clause_of_var(var)))
+                self.remove_c(-var)
+            if len(self.l2c_all[-var]) == 0 and len(self.l2c_all[var]) != 0:
+                self.removed_clause.append((var, self.clause_of_var(var)))
+                self.remove_c(var)
 
     def _init_watch(self):
         """Initialize the l2c_all, num_lit and valid_clause_index."""
@@ -106,7 +121,6 @@ class NiVER:
         """Remove clauses including literal var from sentence."""
         tmp_idx_set = set(self.l2c_all[var])
         for c_idx in tmp_idx_set:
-            # self.sentence.remove(clause)
             self.valid_clause_index.remove(c_idx)
             clause = self.sentence[c_idx]
             for lit in clause:

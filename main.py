@@ -14,14 +14,14 @@ def parse_args():
                         help="step-size coefficient for algorithms based on ERMA, default 0.4")
     parser.add_argument("-batch", type=int, metavar="A", default=10,
                         help="batch parameter used in LRB algorithm, default 10")
-    parser.add_argument("-a", "--assignment-algorithm", type=str, choices=["VSIDS", "ERWA", "RSR", "LRB", "UCB"],
+    parser.add_argument("-a", "--assignment-algorithm", type=str, choices=["VSIDS", "ERWA", "RSR", "LRB", "CHB"],
                         help="Case-sensitive, heuristic branching algorithm for assigning next literal, default VSIDS",
                         default=
-                        "ERWA"
+                        # "VSIDS"
                         # "ERWA"
                         # "RSR"
                         # "LRB"
-                        # "CHB"
+                        "CHB"
                         )
     parser.add_argument("-i", "--input", type=str, help="specify the CNF file needed to be solved, default and1.cnf",
                         default=
@@ -38,18 +38,20 @@ def parse_args():
                         )
     parser.add_argument("-r", "--restart-policy", type=str, choices=["MLR"],
                         help="specify the restart policy, default to be None, default None", default=
-                        # None
-                        "MLR"
+                        None
+                        # "MLR"
                         )
-    parser.add_argument("-p", "--preprocess-policy", type=str, choices=["NiVER", "lighter-NiVER"],
+    parser.add_argument("-p", "--preprocess-policy", type=str, choices=["NiVER", "lighter-NiVER", "li-NiVER-withPLE"],
                         help="specify the preprocess policy, default to be None, default None", default=
                         None
                         # "NiVER"
                         # "lighter-NiVER"
+                        # "li-NiVER-withPLE"
                         )
     parser.add_argument("-b", "--bandit", type=str, choices=["UCB"],
                         help="specify the heuristic changing policy", default=
-                        "UCB"
+                        None
+                        # "UCB"
                         )
 
     return parser.parse_args()

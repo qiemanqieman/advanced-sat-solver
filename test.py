@@ -13,7 +13,7 @@ AssignmentAlgorithm = ["VSIDS", "ERWA", "RSR", "LRB", "CHB"]
 
 # all choices for restart policy
 RestartPolicy = ["MLR", "None"]
-PreProcessor = ["NiVER", "lighter-NiVER", "None"]
+PreProcessor = ["lighter-NiVER", "None"]
 Bandit = ["UCB", "None"]
 
 def testTime():
