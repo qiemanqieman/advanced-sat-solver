@@ -1,5 +1,3 @@
-import time
-
 from CDCL import CDCL
 from tools.utils import read_cnf, verify
 from tools.args import parse_args
@@ -14,17 +12,14 @@ def main(args):
     # Create CDCL solver and solve it!
     cdcl = CDCL(sentence, num_vars, args.assignment_algorithm, args.alpha, args.discount, args.batch,
                 args.restart_policy, args.bandit, args.preprocess_policy)
-    # start = time.time()  # compute time
     res, t1, t2 = cdcl.solve()
-    # end = time.time()
 
     if res is None: print("✘ No solution found")
     else:
         print(f"✔ Successfully found a solution: {res}")
         print("The solution is verified to be", verify(origin_sentence, res))
-    # if cdcl.preprocessor: print(cdcl.preprocessor.time_for_preprocess, "seconds for preprocess")
-    print(t1, "seconds for preprocessing")
-    print(t2, "seconds elapsed for solving")
+    print(f"{t1} seconds for preprocessing")
+    print(f"{t2} seconds elapsed for solving")
 
 
 if __name__ == "__main__":

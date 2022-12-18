@@ -4,13 +4,13 @@ from heuristics import init_heuristic
 from restart import init_restart_policy
 from bandit import init_bandit
 from assignInfo import AssignInfo
-from preprocess import init_preprocess_policy, after_assignment
+from preprocess import init_preprocess_policy
 
 
 class CDCL:
     """The conflict driven clause learning algorithm(`CDCL`) for `SAT` solver."""
 
-    def __init__(self, sentence, num_vars, assignment_algorithm, alpha, discount, batch, rp, bandit, pp):
+    def __init__(self, sentence, num_vars, assignment_algorithm, alpha, discount, batch, rp=None, bandit=None, pp=None):
         """To simplify the use of data structures, `sentence` is a list of lists where each list
         is a clause. Each clause is a list of literals, where a literal is a signed integer.
         `assignment` is also a list of literals in the order of their assignment.

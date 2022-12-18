@@ -5,7 +5,6 @@ class NiVER:
     """Preprocess based on Non Increasing VER (NiVER)"""
 
     def __init__(self, sentence, num_vars, flag, ple=False):
-        self.original_sentence = list(sentence)
         self.sentence = sentence
         self.num_vars = num_vars
         self.l2c_all, self.num_lit, self.valid_clause_index = self._init_watch()

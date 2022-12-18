@@ -4,7 +4,6 @@ import csv
 
 from CDCL import CDCL
 from tools.utils import read_cnf
-from preprocess import init_preprocess_policy
 
 # some other parameters:
 Paras = {'discount': 0.95, 'alpha': 0.4, 'batch': 10}
@@ -62,49 +61,23 @@ def run_cdcl(testfile, preprocess_policy, restart_policy, bandit, assignment_alg
     with open("examples/" + testfile, "r") as f:
         sentence, num_vars = read_cnf(f)
 
-    # Create a preprocessor and preprocess the sentence.
-    preprocessor = init_preprocess_policy(preprocess_policy, sentence, num_vars)
-    if preprocessor is not None:
-        start1 = time.time()
-        sentence, removed_clause = preprocessor.preprocess()
-        end1 = time.time()
-        if removed_clause is None:
-            print("✘ No solution found")
-            hasSolution = False
-            Res = [testfile, preprocess_policy, restart_policy, bandit, assignment_algorithm, hasSolution, '/',
-                 end1 - start1]
-            return Res
-
     # Create CDCL solver and solve it!
-    if restart_policy == "None":
-        restart_policy = None
-
-    if bandit == "None":
-        bandit = None
-
     cdcl = CDCL(sentence, num_vars,
                 assignment_algorithm,
                 Paras['alpha'],
                 Paras['discount'],
                 Paras['batch'],
                 restart_policy,
-                bandit)
+                bandit,
+                preprocess_policy)
 
-    start = time.time()  # compute time
-    res = cdcl.solve()
-    end = time.time()
-    time_used = end - start
+    res, preprocess_time, solve_time = cdcl.solve()
 
     if res is None:
         print("NO SOLUTION")
         hasSolution = False
 
-    if preprocessor is None:
-        preprocess_time = None
-    else:
-        preprocess_time = end1 - start1
-
-    Res = [testfile, preprocess_policy, restart_policy, bandit, assignment_algorithm, hasSolution, time_used, preprocess_time]
+    Res = [testfile, preprocess_policy, restart_policy, bandit, assignment_algorithm, hasSolution, solve_time, preprocess_time]
     return Res
 
 

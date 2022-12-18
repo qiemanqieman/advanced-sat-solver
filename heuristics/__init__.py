@@ -1,11 +1,17 @@
-from .LRB import LRB
 from .VSIDS import VSIDS
 from .ERWA import ERWA
 from .RSR import RSR
+from .LRB import LRB
 from .CHB import CHB
+
 
 __all__ = {
     "init_heuristic",
+    VSIDS,
+    ERWA,
+    RSR,
+    LRB,
+    CHB
 }
 
 
