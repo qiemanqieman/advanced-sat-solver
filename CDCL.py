@@ -1,37 +1,44 @@
+from time import time
+
 from heuristics import init_heuristic
 from restart import init_restart_policy
 from bandit import init_bandit
 from AssignInfo import AssignInfo
+from preprocess import init_preprocess_policy, after_assignment
 
 
 class CDCL:
     """The conflict driven clause learning algorithm(`CDCL`) for `SAT` solver."""
 
-    def __init__(self, sentence, num_vars, assignment_algorithm, alpha, discount, batch, rp, bandit):
+    def __init__(self, sentence, num_vars, assignment_algorithm, alpha, discount, batch, rp, bandit, pp):
         """To simplify the use of data structures, `sentence` is a list of lists where each list
         is a clause. Each clause is a list of literals, where a literal is a signed integer.
         `assignment` is also a list of literals in the order of their assignment.
         """
-        self.sentence = sentence  # Initialize data structures.
+        # Initialize data structures.
+        self.preprocessor = init_preprocess_policy(pp, sentence, num_vars)
+        self.sentence = self.preprocessor.preprocess() if self.preprocessor is not None else sentence
         self.num_vars = num_vars
         self.c2l_watch, self.l2c_watch = self._init_watch()
         self.ai = AssignInfo()  # assignment information
         self.bandit = init_bandit(sentence, alpha, discount, batch, bandit)
         self.assignment_algorithm = assignment_algorithm
-        if self.bandit is None:
-            self.heuristic = init_heuristic(assignment_algorithm, sentence, alpha, discount,
-                                            batch)  # heuristic algorithm
-        else:
-            self.heuristic = self.bandit.Heuristics[0]
         self.rp = init_restart_policy(rp)  # restart policy
+        self.heuristic = init_heuristic(assignment_algorithm, sentence, alpha, discount, batch) \
+            if self.bandit is None else self.bandit.Heuristics[0]  # heuristic algorithm
 
     def solve(self):
         """Solve the CNF sentence, which is the only interface for users."""
+        preprocess_time = self.preprocessor.time_for_preprocess if self.preprocessor is not None else 0
+        if self.sentence is None:
+            return None, preprocess_time, 0
+        solve_time = time()
         solution = self._calculate()
         while solution == 'restart':  # only when specified restart policy, may solution be 'restart'
             solution = self._restart()
-        else:
-            return solution
+        solve_time = time() - solve_time
+        solution = solution if self.preprocessor is None else self.preprocessor.after_assignment(solution)
+        return solution, preprocess_time, solve_time
 
     def _calculate(self):
         """The main calculation part for CDCL algorithm."""

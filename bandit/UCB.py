@@ -1,6 +1,6 @@
 import numpy as np
 
-from heuristics.LRB import LRB
+from heuristics.LRB import LRB   # TODO
 from heuristics.VSIDS import VSIDS
 from heuristics.ERWA import ERWA
 from heuristics.RSR import RSR

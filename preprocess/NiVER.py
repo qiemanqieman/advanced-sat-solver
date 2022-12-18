@@ -1,17 +1,22 @@
+from time import time
+
+
 class NiVER:
     """Preprocess based on Non Increasing VER (NiVER)"""
 
     def __init__(self, sentence, num_vars, flag, ple=False):
-
+        self.original_sentence = list(sentence)
         self.sentence = sentence
         self.num_vars = num_vars
         self.l2c_all, self.num_lit, self.valid_clause_index = self._init_watch()
         self.removed_clause = []    # clauses removed during preprocessing
         self.flag = flag    # degree of preprocess
         self.ple = ple  # pure literal eliminate or not
+        self.time_for_preprocess = 0  # seconds used for preprocessing
 
     def preprocess(self):
         """The main part for preprocess with NiVER algorithm."""
+        start_time = time()
         if self.ple:
             self.pure_literal_elimination()
         while True:
@@ -26,7 +31,7 @@ class NiVER:
                     for N_idx in self.l2c_all[-var]:
                         resolvent = self.learn_resolvent(P_idx, N_idx, var)
                         if len(resolvent) == 0:
-                            return None, None
+                            return None
                         if not self.judge_tautology(resolvent) and not self.judge_exist(resolvent):
                             new_num_lit += len(resolvent)
                             R_clause_set.append(resolvent)
@@ -53,7 +58,8 @@ class NiVER:
                 break
         if self.ple:
             self.pure_literal_elimination()
-        return self.valid_sentence(), self.removed_clause
+        self.time_for_preprocess = time() - start_time
+        return self.valid_sentence()
 
     def pure_literal_elimination(self):
         """Eliminate pure literals."""
@@ -133,3 +139,30 @@ class NiVER:
         for idx in self.valid_clause_index:
             final_sentence.append(self.sentence[idx])
         return final_sentence
+
+    def after_assignment(self, result):
+        """Assign values to elements eliminated during preprocessing after assignment."""
+        if result is None: return None
+        res = set(result)
+        for i in range(1, self.num_vars+1):
+            if i not in res and -i not in res:
+                res.add(i)
+
+        while len(self.removed_clause) != 0:
+            lit, clause_list = self.removed_clause.pop()
+            for clause in clause_list:
+                flag = True
+                for l in clause:
+                    if abs(l) != abs(lit) and l in res:
+                        flag = False
+                        break
+                if flag:
+                    for l in clause:
+                        if abs(l) == abs(lit):
+                            if lit in res:
+                                res.remove(lit)
+                            elif -lit in res:
+                                res.remove(-lit)
+                            res.add(l)
+                            break
+        return list(res)

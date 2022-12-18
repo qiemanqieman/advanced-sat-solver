@@ -2,10 +2,9 @@ from tkinter import *
 from tkinter import filedialog
 from tkinter.ttk import Combobox
 import time
-from multiprocessing import Process, Queue
 
 from CDCL import CDCL
-from utils import read_cnf
+from tools.utils import read_cnf
 
 startTime = time.time()
 
@@ -80,7 +79,7 @@ class Window(Frame):
         with open(self.file['text'], "r") as f:
             sentence, num_vars = read_cnf(f)
         cdcl = CDCL(sentence, num_vars, self.aa.get(), self.alpha.get(), self.discount.get(),
-                    self.batch.get(), self.rp.get())
+                    self.batch.get(), self.rp.get(),None)
         startTime = time.time()
         # Process(target=self.updateTime).start()
         result = cdcl.solve()

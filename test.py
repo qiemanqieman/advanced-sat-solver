@@ -3,8 +3,9 @@ import os
 import csv
 
 from CDCL import CDCL
-from utils import read_cnf, verify
-from preprocess import init_preprocess_policy, after_assignment
+from tools.utils import read_cnf
+from preprocess import init_preprocess_policy
+
 # some other parameters:
 Paras = {'discount': 0.95, 'alpha': 0.4, 'batch': 10}
 
@@ -24,7 +25,7 @@ def testTime():
     TestFilenames = os.listdir(file_path)
 
     # save the result in a csv file
-    r = open('timeTestResult.csv', 'w', newline="")
+    r = open('results/timeTestResult.csv', 'w', newline="")
     csv_writer = csv.writer(r)
     csv_writer.writerow(["FileName",
                          "PreProcessor",
