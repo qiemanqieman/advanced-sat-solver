@@ -3,7 +3,7 @@ from time import time
 from heuristics import init_heuristic
 from restart import init_restart_policy
 from bandit import init_bandit
-from AssignInfo import AssignInfo
+from assignInfo import AssignInfo
 from preprocess import init_preprocess_policy, after_assignment
 
 
@@ -21,10 +21,10 @@ class CDCL:
         self.num_vars = num_vars
         self.c2l_watch, self.l2c_watch = self._init_watch()
         self.ai = AssignInfo()  # assignment information
-        self.bandit = init_bandit(sentence, alpha, discount, batch, bandit)
+        self.bandit = init_bandit(self.sentence, alpha, discount, batch, bandit)
         self.assignment_algorithm = assignment_algorithm
         self.rp = init_restart_policy(rp)  # restart policy
-        self.heuristic = init_heuristic(assignment_algorithm, sentence, alpha, discount, batch) \
+        self.heuristic = init_heuristic(assignment_algorithm, self.sentence, alpha, discount, batch) \
             if self.bandit is None else self.bandit.Heuristics[0]  # heuristic algorithm
 
     def solve(self):
