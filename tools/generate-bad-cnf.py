@@ -11,7 +11,7 @@ def generate(num_var):
             res[j].append(i)
             j += 2
         i += 1
-    with open("my-examples/bad-" + str(num_var) + "-vars.cnf", "w+") as f:
+    with open("../my-examples/bad-" + str(num_var) + "-vars.cnf", "w+") as f:
         print("p", "cnf", num_var, 2 ** num_var, file=f)
         for clause in res:
             print(str(clause)[1:-1].replace(",", ""), 0, file=f)

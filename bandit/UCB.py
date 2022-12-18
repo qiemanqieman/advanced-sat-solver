@@ -1,17 +1,12 @@
 import numpy as np
 
-from heuristics.LRB import LRB
-from heuristics.VSIDS import VSIDS
-from heuristics.ERWA import ERWA
-from heuristics.RSR import RSR
-from heuristics.CHB import CHB
+from heuristics import VSIDS, ERWA, RSR, LRB, CHB
 
 
 class UCB:
     def __init__(self, sentence, alpha, discount, batch):
         super().__init__()
-        # self.AllHeuristicsChoices = ["LRB", "VSIDS", "ERWA", "RSR", "CHB"]
-        self.AllHeuristicsChoices = ["VSIDS", "CHB", "LRB", "ERWA", "RSR"]
+        self.AllHeuristicsChoices = ["VSIDS", "ERWA", "RSR", "LRB", "CHB"]
         self.Heuristics = [VSIDS(sentence, discount), CHB(sentence, alpha), LRB(sentence, alpha, discount, batch),
                            ERWA(sentence, alpha), RSR(sentence, alpha)]
         self.num_arms = len(self.AllHeuristicsChoices)

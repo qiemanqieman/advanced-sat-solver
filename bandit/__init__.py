@@ -6,7 +6,7 @@ __all__ = {
 
 
 def init_bandit(sentence, alpha, discount, batch, bandit):
-    if bandit is None:
+    if bandit is None or bandit.lower() == "none":
         return None
     elif bandit.lower() == "ucb":
         return UCB(sentence, alpha, discount, batch)
