@@ -102,7 +102,8 @@ class Window(Frame):
         # Process(target=self.updateTime).start()
         result, preprocess_time, solve_time = cdcl.solve()
         self.result.insert(END, f"""Config:{self.file['text'].split('/')[-1], self.aa.get(), self.alpha.get(),
-                                self.discount.get(), self.batch.get(), self.rp.get()}\nResult:{result}\n\n""")
+                                            self.discount.get(), self.batch.get(), self.rp.get(), self.rb.get(),
+                                            self.pp.get()}\nResult:{result}\n\n""")
         self.tp['text'] = f"{preprocess_time:.4f}s"
         self.ts['text'] = f"{solve_time:.4f}s"
 

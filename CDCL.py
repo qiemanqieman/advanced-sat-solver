@@ -3,7 +3,7 @@ from time import time
 from heuristics import init_heuristic
 from restart import init_restart_policy
 from bandit import init_bandit
-from assignInfo import AssignInfo
+from ai import AssignInfo
 from preprocess import init_preprocess_policy
 
 

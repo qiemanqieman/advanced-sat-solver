@@ -1,3 +1,6 @@
+"""Implementation of the assignment information data structure."""
+
+
 class AssignInfo:
     """
     A struct used for recording the assignment information
