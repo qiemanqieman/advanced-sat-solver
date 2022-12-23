@@ -17,7 +17,7 @@ def main(args):
     if res is None: print("✘ No solution found")
     else:
         print(f"✔ Successfully found a solution: {res}")
-        print("The solution is verified to be", verify(origin_sentence, res))
+        print(f"The solution is verified to be {verify(origin_sentence, res)}")
     print(f"{t1} seconds for preprocessing")
     print(f"{t2} seconds elapsed for solving")
 

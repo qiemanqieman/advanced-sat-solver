@@ -1,6 +1,6 @@
-import time
 import os
 import csv
+from func_timeout import func_set_timeout
 
 from CDCL import CDCL
 from tools.utils import read_cnf
@@ -15,6 +15,7 @@ AssignmentAlgorithm = ["VSIDS", "ERWA", "RSR", "LRB", "CHB"]
 RestartPolicy = ["MLR", "None"]
 PreProcessor = ["lighter-NiVER", "None"]
 Bandit = ["UCB", "None"]
+
 
 def testTime():
     # get all test files
@@ -44,17 +45,32 @@ def testTime():
                     if bandit != "None" and restart_policy == "None":
                         continue
                     if bandit != "None":
-                        Res = run_cdcl(testfile, preprocess_policy, restart_policy, bandit, "VSIDS")
+                        try:
+                            Res = run_cdcl(testfile, preprocess_policy, restart_policy, bandit, "VSIDS")
+                        except:
+                            csv_writer.writerow(["TIMEOUT", testfile, preprocess_policy, restart_policy, bandit])
+                            continue
                         Res[4] = '/'
                         csv_writer.writerow(Res)
                     else:
                         for assignment_algorithm in AssignmentAlgorithm:
-                            Res = run_cdcl(testfile, preprocess_policy, restart_policy, bandit, assignment_algorithm)
+                            try:
+                                Res = run_cdcl(testfile, preprocess_policy, restart_policy, bandit, assignment_algorithm)
+                            except:
+                                csv_writer.writerow(["TIMEOUT", testfile, preprocess_policy, restart_policy, bandit])
+                                continue
                             csv_writer.writerow(Res)
 
     r.close()
 
 
+# def handle_timeout(signum, frame):
+#     raise TimeoutError("function timeout")
+
+# timeout_sec = 2
+# signal.signal(signal.SIGALRM, handle_timeout)
+
+@func_set_timeout(200)
 def run_cdcl(testfile, preprocess_policy, restart_policy, bandit, assignment_algorithm):
     print(testfile, preprocess_policy, restart_policy, bandit, assignment_algorithm)
     hasSolution = True
@@ -70,8 +86,15 @@ def run_cdcl(testfile, preprocess_policy, restart_policy, bandit, assignment_alg
                 restart_policy,
                 bandit,
                 preprocess_policy)
-
+    # signal.alarm(timeout_sec)
+    # try:
     res, preprocess_time, solve_time = cdcl.solve()
+    # except TimeoutError:
+        # -1 means find no solution within `timeout_sec` seconds
+    # Res = [testfile, preprocess_policy, restart_policy, bandit, assignment_algorithm, False, -1, preprocess_time]
+    # return Res
+    # finally:
+        # signal.alarm(0)
 
     if res is None:
         print("NO SOLUTION")
