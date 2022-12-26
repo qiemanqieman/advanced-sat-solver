@@ -1,13 +1,13 @@
 # <center>advanced-sat-solver</center>
 ## Description
 A pure-python implemented SAT solver using CDCL equipped with several techniques, 
-including VSIDS, LRB, CHB, MLR and so on.
+including VSIDS, LRB, CHB, MLR, UCB, NiVER and so on.
 
 ## Tested Environment
 - Python 3.10
 
 ## Usage
-```python main.py [-h] [-a {VSIDS,ERMA,RSR,LRB}] [-i INPUT] [-discount D] [-alpha A] [-batch B]``` \
+```python main.py [-h] [-a {VSIDS,ERMA,RSR,LRB,CHB}] [-r {MLR}] [-b {UCB}] [-p {NiVER,lighter-NiVER,li-NiVER-withPLE}] [-i INPUT] [-discount D] [-alpha A] [-batch B]``` \
 `python main.py` to run the solver with default settings.`python main.py -h` for more details. \
 `python GUI.py` to run with GUI.\
 `python test.py` to generate test results.
@@ -15,21 +15,29 @@ including VSIDS, LRB, CHB, MLR and so on.
 ### Arguments
 ``` 
   -h, --help            show this help message and exit
-  --discount D          discount coefficient for decaying
-  --alpha A             step-size coefficient for algorithms based on ERMA
-  -batch A              batch parameter used in LRB algorithm
-  -a {VSIDS,ERWA,RSR,LRB}, --assignment-alogrithm {VSIDS,ERWA,RSR,LRB}
-                        Case-sensitive, heuristic branching algorithm for assigning next literal
+  --discount D          discount coefficient for decaying, default 0.95
+  --alpha A             step-size coefficient for algorithms based on ERMA, default 0.4
+  -batch A              batch parameter used in LRB algorithm, default 10
+  -a {VSIDS,ERWA,RSR,LRB,CHB}, --assignment-algorithm {VSIDS,ERWA,RSR,LRB,CHB}
+                        Case-sensitive, heuristic branching algorithm for assigning next literal, default VSIDS
   -i INPUT, --input INPUT
-                        specify the CNF file needed to be solved
-
+                        specify the CNF file needed to be solved, default and1.cnf
+  -r {MLR}, --restart-policy {MLR}
+                        specify the restart policy, default to be None
+  -p {NiVER,lighter-NiVER,li-NiVER-withPLE}, --preprocess-policy {NiVER,lighter-NiVER,li-NiVER-withPLE}
+                        specify the preprocess policy, default to be None
+  -b {UCB}, --bandit {UCB}
+                        specify the heuristic changing policy, default to be None
+                  
 ```
 
 ### Example
 ```python main.py -a LRB -i ./examples/bmc-1.cnf```
 ![img.png](results/lrb-bmc-1.png)
 
-## Currently tested efficiency
+## Test results during implementation
+The following are just phased test results for our own reference during implementation. 
+If you want to see the final experiment results, please refer to the file results/timeTestResult.csv.
 ### without restart
 | File                      | VSIDS  | ERMA   | RSR    | LRB    | CHB    |
 |---------------------------|--------|--------|--------|--------|--------|
@@ -54,13 +62,13 @@ including VSIDS, LRB, CHB, MLR and so on.
 
 | File                      | with lighter-NiVER         | without preprocess|
 |---------------------------|----------------------------|-------------------|
-| bcm-1.cnf                 | 6.43s(pre) + 19.93s(cdcl)  | 115.86s           |
-| bcm-2.cnf                 | 0.73s + 0.12s              | 0.167s            | 
-| bcm-7.cnf                 | 3.08s + 0.055s             | 0.49s             |
+| bcm-1.cnf                 | 3.91s(pre) + 10.62s(cdcl)  | 57.50s           |
+| bcm-2.cnf                 | 0.35s + 0.059s              | 0.080s            | 
+| bcm-7.cnf                 | 1.968s + 0.035s             | 0.289s             |
 
 ## Further reading
 Some links for the details of all kinds of algorithm used
-in this project
+in this project.
 
 ### ERMA & RSR & LRB
 Full paper can be read [online ](https://link.springer.com/chapter/10.1007/978-3-319-40970-2_9)
@@ -71,6 +79,9 @@ Full paper can be downloaded from [here](https://dl.acm.org/doi/10.5555/3016100.
 
 ### MLR (machine learning-based restart)
 Full paper can be read [online](https://link.springer.com/chapter/10.1007/978-3-319-94144-8_6)
+
+### UCB (Upper Confidence Bound)
+Full paper can be downloaded from [here](https://drops.dagstuhl.de/opus/volltexte/2021/15311/)
 
 ### NiVER (Non Increasing Variable Elimination Resolution)
 Full paper can be downloaded from [here](http://www.satisfiability.org/SAT04/programme/118.pdf)
