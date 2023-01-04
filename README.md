@@ -32,7 +32,7 @@ including VSIDS, LRB, CHB, MLR, UCB, NiVER and so on.
 ```
 
 ### Example
-```python main.py -a LRB -i ./examples/bmc-1.cnf```
+```python main.py -a RSR -i ./examples/bmc-1.cnf```
 ![img.png](results/rsr-bmc-1.png)
 
 ## Test results during implementation
