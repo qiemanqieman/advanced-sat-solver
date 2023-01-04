@@ -9,8 +9,8 @@ including VSIDS, LRB, CHB, MLR, UCB, NiVER and so on.
 ## Usage
 ```python main.py [-h] [-a {VSIDS,ERMA,RSR,LRB,CHB}] [-r {MLR}] [-b {UCB}] [-p {NiVER,lighter-NiVER,li-NiVER-withPLE}] [-i INPUT] [-discount D] [-alpha A] [-batch B]``` \
 `python main.py` to run the solver with default settings.`python main.py -h` for more details. \
-`python GUI.py` to run with GUI.\
-`python test.py` to generate test results.
+`python gui.py` to run with GUI.\
+`python test.py` to generate test results in .csv file format.
 
 ### Arguments
 ``` 
@@ -19,7 +19,7 @@ including VSIDS, LRB, CHB, MLR, UCB, NiVER and so on.
   --alpha A             step-size coefficient for algorithms based on ERMA, default 0.4
   -batch A              batch parameter used in LRB algorithm, default 10
   -a {VSIDS,ERWA,RSR,LRB,CHB}, --assignment-algorithm {VSIDS,ERWA,RSR,LRB,CHB}
-                        Case-sensitive, heuristic branching algorithm for assigning next literal, default VSIDS
+                        Case-insensitive, heuristic branching algorithm for assigning next literal, default VSIDS
   -i INPUT, --input INPUT
                         specify the CNF file needed to be solved, default and1.cnf
   -r {MLR}, --restart-policy {MLR}
@@ -33,7 +33,7 @@ including VSIDS, LRB, CHB, MLR, UCB, NiVER and so on.
 
 ### Example
 ```python main.py -a LRB -i ./examples/bmc-1.cnf```
-![img.png](results/lrb-bmc-1.png)
+![img.png](results/rsr-bmc-1.png)
 
 ## Test results during implementation
 The following are just phased test results for our own reference during implementation. 
@@ -60,14 +60,14 @@ If you want to see the final experiment results, please refer to the file result
 ### preprocess(NiVER)
 (VSIDS + MLR)
 
-| File                      | with lighter-NiVER         | without preprocess|
-|---------------------------|----------------------------|-------------------|
-| bcm-1.cnf                 | 3.91s(pre) + 10.62s(cdcl)  | 57.50s           |
-| bcm-2.cnf                 | 0.35s + 0.059s              | 0.080s            | 
-| bcm-7.cnf                 | 1.968s + 0.035s             | 0.289s             |
+| File                      | with lighter-NiVER         | without preprocess |
+|---------------------------|----------------------------|--------------------|
+| bcm-1.cnf                 | 3.91s(pre) + 10.62s(cdcl)  | 57.50s             |
+| bcm-2.cnf                 | 0.35s + 0.059s             | 0.080s             | 
+| bcm-7.cnf                 | 1.968s + 0.035s            | 0.289s             |
 
 ## Further reading
-Some links for the details of all kinds of algorithm used
+Some links for the details of all kinds of algorithms used
 in this project.
 
 ### ERMA & RSR & LRB
